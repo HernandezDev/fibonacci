@@ -9,10 +9,17 @@ export default defineConfig({
     extend: {
       tokens: {
         colors: {
-          // Colores de marca: valores crudos, no se usan directo en componentes
+          // Valores crudos: la única paleta del sitio. No se usan directo en
+          // componentes; los roles de `semanticTokens` les dan su función.
           brand: {
             navy: { value: '#002045' },
+            navySoft: { value: '#1b3556' },
             blue: { value: '#0061a5' },
+          },
+          neutral: {
+            snow: { value: '#f7fafc' },
+            mist: { value: '#e0e3e5' },
+            slate: { value: '#43474e' },
           },
         },
         fonts: {
@@ -27,34 +34,31 @@ export default defineConfig({
       semanticTokens: {
         colors: {
           bg: {
-            DEFAULT: { value: '#f7fafc' },
-            muted: { value: '#e0e3e5' },
+            DEFAULT: { value: '{colors.neutral.snow}' },
+            muted: { value: '{colors.neutral.mist}' },
           },
           text: {
             DEFAULT: { value: '{colors.gray.900}' },
-            muted: { value: '#43474e' },
+            muted: { value: '{colors.neutral.slate}' },
           },
           // Títulos grandes: el navy de la marca como color de texto
           heading: { value: '{colors.brand.navy}' },
-          border: {
-            DEFAULT: { value: '{colors.gray.300}' },
-          },
+          border: { value: '{colors.neutral.mist}' },
           primary: {
             DEFAULT: { value: '{colors.brand.navy}' },
             text: {
-              DEFAULT: { value: '#ffffff' },
-              // Valores estimados a ojo de la landing anterior; confirmar con el diseñador
-              muted: { value: '#c4cfdf' },
+              DEFAULT: { value: '{colors.white}' },
+              muted: { value: '{colors.neutral.mist}' },
             },
-            border: { value: '#1b3556' },
+            border: { value: '{colors.brand.navySoft}' },
           },
           secondary: {
             DEFAULT: { value: '{colors.brand.blue}' },
-            text: { value: '#ffffff' },
+            text: { value: '{colors.white}' },
           },
           danger: {
             DEFAULT: { value: '{colors.red.600}' },
-            text: { value: '#ffffff' },
+            text: { value: '{colors.white}' },
           },
         },
       },
