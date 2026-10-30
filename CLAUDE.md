@@ -234,7 +234,8 @@ Panda está instalado y Tailwind ya se quitó de la plantilla (paquetes, plugin 
 - `vite.config.ts`: `pandacss()` va entre el plugin de Cloudflare y `reactRouter()`.
 - Colores en dos capas, dentro de `theme.extend`:
   - `tokens.colors.brand` (`navy` `#002045`, `blue` `#0061a5`): valores crudos de marca, no se usan directo en componentes.
-  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `fg` / `fg.muted`, `border`, `primary` / `primary.fg`, `secondary` / `secondary.fg`, `danger` / `danger.fg`. Cada uno tiene valor claro y oscuro (`_osDark`, sigue la preferencia del sistema, sin JavaScript). Las escalas `gray`, `blue` y `red` salen del preset de Panda.
+  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `fg` / `fg.muted`, `border`, `primary` / `primary.fg`, `secondary` / `secondary.fg`, `danger` / `danger.fg`. Hoy solo tienen valor claro. Las escalas `gray`, `blue` y `red` salen del preset de Panda.
+  - **Modo oscuro postergado a propósito**: soportarlo obliga a probar cada pantalla dos veces. El sitio está fijado en claro (`color-scheme: light`, sin logo oscuro). Como los componentes usan roles, sumarlo después es pasar cada valor de `semanticTokens` a `{ base, _osDark }` (sigue la preferencia del sistema, sin JavaScript) y restaurar `color-scheme: light dark`.
   - Los roles son una **sugerencia**, no una obligación: conviene usarlos (`css({ bg: "bg", color: "fg" })`) para mantener coherencia y el modo oscuro, pero se puede improvisar con otros colores cuando haga falta. Si un color improvisado se repite, promoverlo a rol.
   - El par `x` / `x.fg` es siempre fondo y el texto que va encima (por ejemplo `bg: "primary", color: "primary.fg"`).
 - `panda.config.ts`: presets `@pandacss/preset-base` y `@pandacss/preset-panda`, `include` sobre `./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}` y `outdir: "styled-system"`. Toda ruta o componente nuevo tiene que quedar cubierto por `include`.
@@ -249,7 +250,7 @@ Panda está instalado y Tailwind ya se quitó de la plantilla (paquetes, plugin 
 ## Fuente
 
 - Inter variable con `@fontsource-variable/inter`, importada en `app/app.css`. La familia es `"Inter Variable"`.
-- Fuente única de verdad: el token `fonts.inter` de `panda.config.ts`. El `body` la aplica desde `globalCss` (`fontFamily: 'inter'`), junto con `color-scheme: light dark` en `html`. No repetir el `font-family` en `app.css`.
+- Fuente única de verdad: el token `fonts.inter` de `panda.config.ts`. El `body` la aplica desde `globalCss` (`fontFamily: 'inter'`), junto con `color-scheme: light` en `html`. No repetir el `font-family` en `app.css`.
 - No se usa Google Fonts: evita requests a dominios externos, el envío de datos de cada visita a Google y la dependencia de un tercero. Los `.woff2` salen del propio Worker y la versión queda fijada en el lockfile.
 
 ## Skills del agente

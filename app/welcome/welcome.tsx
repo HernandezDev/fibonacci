@@ -1,6 +1,5 @@
 import { css } from "styled-system/css";
 
-import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
 export function Welcome({ message }: { message: string }) {
@@ -39,12 +38,7 @@ export function Welcome({ message }: { message: string }) {
             <img
               src={logoLight}
               alt="React Router"
-              className={css({ display: "block", w: "full", _osDark: { display: "none" } })}
-            />
-            <img
-              src={logoDark}
-              alt="React Router"
-              className={css({ display: "none", w: "full", _osDark: { display: "block" } })}
+              className={css({ w: "full" })}
             />
           </div>
         </header>

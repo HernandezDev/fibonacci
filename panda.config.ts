@@ -22,39 +22,39 @@ export default defineConfig({
           },
         },
       },
-      // Roles semánticos: lo que usan los componentes. El modo oscuro sigue
-      // la preferencia del sistema (_osDark), sin JavaScript.
+      // Roles semánticos: lo que usan los componentes. Solo modo claro por ahora;
+      // para sumar el oscuro, pasar cada valor a { base, _osDark }.
       semanticTokens: {
         colors: {
           bg: {
-            DEFAULT: { value: { base: '#f7fafc', _osDark: '{colors.gray.950}' } },
-            muted: { value: { base: '#e0e3e5', _osDark: '{colors.gray.900}' } },
+            DEFAULT: { value: '#f7fafc' },
+            muted: { value: '#e0e3e5' },
           },
           fg: {
-            DEFAULT: { value: { base: '{colors.gray.900}', _osDark: '{colors.gray.50}' } },
-            muted: { value: { base: '#43474e', _osDark: '{colors.gray.400}' } },
+            DEFAULT: { value: '{colors.gray.900}' },
+            muted: { value: '#43474e' },
           },
           border: {
-            DEFAULT: { value: { base: '{colors.gray.300}', _osDark: '{colors.gray.800}' } },
+            DEFAULT: { value: '{colors.gray.300}' },
           },
           primary: {
-            DEFAULT: { value: { base: '{colors.brand.navy}', _osDark: '{colors.blue.300}' } },
-            fg: { value: { base: '#ffffff', _osDark: '{colors.gray.950}' } },
+            DEFAULT: { value: '{colors.brand.navy}' },
+            fg: { value: '#ffffff' },
           },
           secondary: {
-            DEFAULT: { value: { base: '{colors.brand.blue}', _osDark: '{colors.blue.400}' } },
-            fg: { value: { base: '#ffffff', _osDark: '{colors.gray.950}' } },
+            DEFAULT: { value: '{colors.brand.blue}' },
+            fg: { value: '#ffffff' },
           },
           danger: {
-            DEFAULT: { value: { base: '{colors.red.600}', _osDark: '{colors.red.400}' } },
-            fg: { value: { base: '#ffffff', _osDark: '{colors.gray.950}' } },
+            DEFAULT: { value: '{colors.red.600}' },
+            fg: { value: '#ffffff' },
           },
         },
       },
     },
   },
   globalCss: {
-    html: { colorScheme: 'light dark' },
+    html: { colorScheme: 'light' },
     body: { fontFamily: 'inter' },
   },
   outdir: "styled-system",
