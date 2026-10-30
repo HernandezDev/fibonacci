@@ -1,100 +1,119 @@
 import { css } from "styled-system/css";
 
+import { DiagonalDashBackground } from "~/components/diagonal-dash-background";
+
 import logoLight from "./logo-light.svg";
 
 export function Welcome({ message }: { message: string }) {
   return (
-    <main
-      className={css({
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        pt: "16",
-        pb: "4",
-        bg: "bg",
-        color: "text",
-        minH: "100vh",
-      })}
-    >
-      <div
+    <>
+      <DiagonalDashBackground />
+      <main
         className={css({
-          flex: "1",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
-          gap: "16",
-          minH: "0",
+          justifyContent: "center",
+          pt: "16",
+          pb: "4",
+          bg: "bg",
+          color: "text",
+          minH: "100vh",
         })}
       >
-        <header
+        <div
           className={css({
+            flex: "1",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: "9",
+            gap: "16",
+            minH: "0",
           })}
         >
-          <div className={css({ w: "500px", maxW: "100vw", p: "4" })}>
-            <img
-              src={logoLight}
-              alt="React Router"
-              className={css({ w: "full" })}
-            />
-          </div>
-        </header>
-        <div
-          className={css({
-            maxW: "300px",
-            w: "full",
-            px: "4",
-            display: "flex",
-            flexDirection: "column",
-            gap: "6",
-          })}
-        >
-          <nav
+          <header
             className={css({
-              rounded: "3xl",
-              borderWidth: "1px",
-              borderColor: "border",
-              p: "6",
               display: "flex",
               flexDirection: "column",
-              gap: "4",
+              alignItems: "center",
+              gap: "9",
             })}
           >
-            <p className={css({ lineHeight: "1.5rem", color: "text.muted", textAlign: "center" })}>
-              What&apos;s next?
-            </p>
-            <ul>
-              {resources.map(({ href, text, icon }) => (
-                <li key={href}>
-                  <a
-                    className={css({
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "3",
-                      alignSelf: "stretch",
-                      p: "3",
-                      lineHeight: "normal",
-                      color: "secondary",
-                      _hover: { textDecoration: "underline" },
-                    })}
-                    href={href}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {icon}
-                    {text}
-                  </a>
+            <div className={css({ w: "500px", maxW: "100vw", p: "4" })}>
+              <img
+                src={logoLight}
+                alt="React Router"
+                className={css({ w: "full" })}
+              />
+            </div>
+          </header>
+          <div
+            className={css({
+              maxW: "300px",
+              w: "full",
+              px: "4",
+              display: "flex",
+              flexDirection: "column",
+              gap: "6",
+            })}
+          >
+            <nav
+              className={css({
+                rounded: "3xl",
+                borderWidth: "1px",
+                borderColor: "border",
+                p: "6",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4",
+              })}
+            >
+              <p
+                className={css({
+                  lineHeight: "1.5rem",
+                  color: "text.muted",
+                  textAlign: "center",
+                })}
+              >
+                What&apos;s next?
+              </p>
+              <ul>
+                {resources.map(({ href, text, icon }) => (
+                  <li key={href}>
+                    <a
+                      className={css({
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "3",
+                        alignSelf: "stretch",
+                        p: "3",
+                        lineHeight: "normal",
+                        color: "secondary",
+                        _hover: { textDecoration: "underline" },
+                      })}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {icon}
+                      {text}
+                    </a>
+                  </li>
+                ))}
+                <li
+                  className={css({
+                    alignSelf: "stretch",
+                    p: "3",
+                    lineHeight: "normal",
+                  })}
+                >
+                  {message}
                 </li>
-              ))}
-              <li className={css({ alignSelf: "stretch", p: "3", lineHeight: "normal" })}>{message}</li>
-            </ul>
-          </nav>
+              </ul>
+            </nav>
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
