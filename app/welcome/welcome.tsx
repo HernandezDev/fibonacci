@@ -12,7 +12,7 @@ export function Welcome({ message }: { message: string }) {
         pt: "16",
         pb: "4",
         bg: "bg",
-        color: "fg",
+        color: "text",
         minH: "100vh",
       })}
     >
@@ -63,7 +63,7 @@ export function Welcome({ message }: { message: string }) {
               gap: "4",
             })}
           >
-            <p className={css({ lineHeight: "1.5rem", color: "fg.muted", textAlign: "center" })}>
+            <p className={css({ lineHeight: "1.5rem", color: "text.muted", textAlign: "center" })}>
               What&apos;s next?
             </p>
             <ul>
@@ -100,7 +100,7 @@ export function Welcome({ message }: { message: string }) {
 
 // Los enlaces se pintan con `secondary`; el trazo del ícono sigue al texto al pasar el mouse.
 const iconClass = css({
-  stroke: "fg.muted",
+  stroke: "text.muted",
   "a:hover &": { stroke: "currentColor" },
 });
 

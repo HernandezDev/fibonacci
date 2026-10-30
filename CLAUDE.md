@@ -234,10 +234,10 @@ Panda está instalado y Tailwind ya se quitó de la plantilla (paquetes, plugin 
 - `vite.config.ts`: `pandacss()` va entre el plugin de Cloudflare y `reactRouter()`.
 - Colores en dos capas, dentro de `theme.extend`:
   - `tokens.colors.brand` (`navy` `#002045`, `blue` `#0061a5`): valores crudos de marca, no se usan directo en componentes.
-  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `fg` / `fg.muted`, `border`, `primary` / `primary.fg`, `secondary` / `secondary.fg`, `danger` / `danger.fg`. Hoy solo tienen valor claro. Las escalas `gray`, `blue` y `red` salen del preset de Panda.
+  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `text` / `text.muted`, `border`, `primary` / `primary.text`, `secondary` / `secondary.text`, `danger` / `danger.text`. Hoy solo tienen valor claro. Las escalas `gray`, `blue` y `red` salen del preset de Panda.
   - **Modo oscuro postergado a propósito**: soportarlo obliga a probar cada pantalla dos veces. El sitio está fijado en claro (`color-scheme: light`, sin logo oscuro). Como los componentes usan roles, sumarlo después es pasar cada valor de `semanticTokens` a `{ base, _osDark }` (sigue la preferencia del sistema, sin JavaScript) y restaurar `color-scheme: light dark`.
-  - Los roles son una **sugerencia**, no una obligación: conviene usarlos (`css({ bg: "bg", color: "fg" })`) para mantener coherencia y el modo oscuro, pero se puede improvisar con otros colores cuando haga falta. Si un color improvisado se repite, promoverlo a rol.
-  - El par `x` / `x.fg` es siempre fondo y el texto que va encima (por ejemplo `bg: "primary", color: "primary.fg"`).
+  - Los roles son una **sugerencia**, no una obligación: conviene usarlos (`css({ bg: "bg", color: "text" })`) para mantener coherencia y el modo oscuro, pero se puede improvisar con otros colores cuando haga falta. Si un color improvisado se repite, promoverlo a rol.
+  - El par `x` / `x.text` es siempre fondo y el texto que va encima (por ejemplo `bg: "primary", color: "primary.text"`).
 - `panda.config.ts`: presets `@pandacss/preset-base` y `@pandacss/preset-panda`, `include` sobre `./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}` y `outdir: "styled-system"`. Toda ruta o componente nuevo tiene que quedar cubierto por `include`.
 - `strictTokens` **no** está activado. Se puede reconsiderar cuando estén definidos los tokens propios del diseño.
 - `styled-system/` se genera con `panda codegen` (script `prepare`, corre con `npm ci`) y está en `.gitignore`. No se commitea.

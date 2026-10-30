@@ -30,7 +30,7 @@ export default defineConfig({
             DEFAULT: { value: '#f7fafc' },
             muted: { value: '#e0e3e5' },
           },
-          fg: {
+          text: {
             DEFAULT: { value: '{colors.gray.900}' },
             muted: { value: '#43474e' },
           },
@@ -39,15 +39,15 @@ export default defineConfig({
           },
           primary: {
             DEFAULT: { value: '{colors.brand.navy}' },
-            fg: { value: '#ffffff' },
+            text: { value: '#ffffff' },
           },
           secondary: {
             DEFAULT: { value: '{colors.brand.blue}' },
-            fg: { value: '#ffffff' },
+            text: { value: '#ffffff' },
           },
           danger: {
             DEFAULT: { value: '{colors.red.600}' },
-            fg: { value: '#ffffff' },
+            text: { value: '#ffffff' },
           },
         },
       },
