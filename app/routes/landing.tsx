@@ -1,5 +1,5 @@
-import { DiagonalDashBackground } from "~/components/diagonal-dash-background";
-import { Header } from "~/components/header";
+import { DiagonalDashBackground } from "~/components/Diagonal-dash-background";
+import { Header } from "~/components/LandingHeader";
 
 export function meta() {
   return [

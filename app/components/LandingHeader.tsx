@@ -5,7 +5,7 @@ import { css, cva, cx } from "styled-system/css";
 
 import { useActiveSection } from "~/hooks/use-active-section";
 import { button } from "~/styles/button";
-import { Logo } from "./logo";
+import { Logo } from "./Logo";
 
 const LINKS = [
   { id: "inicio", label: "Inicio" },
