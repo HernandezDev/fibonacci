@@ -13,7 +13,6 @@ export default defineConfig({
           // componentes; los roles de `semanticTokens` les dan su función.
           brand: {
             navy: { value: '#002045' },
-            navySoft: { value: '#1b3556' },
             blue: { value: '#0061a5' },
           },
           neutral: {
@@ -38,8 +37,7 @@ export default defineConfig({
             muted: { value: '{colors.neutral.mist}' },
           },
           text: {
-            DEFAULT: { value: '{colors.gray.900}' },
-            muted: { value: '{colors.neutral.slate}' },
+            DEFAULT: { value: '{colors.neutral.slate}' },
           },
           // Títulos grandes: el navy de la marca como color de texto
           heading: { value: '{colors.brand.navy}' },
@@ -48,9 +46,11 @@ export default defineConfig({
             DEFAULT: { value: '{colors.brand.navy}' },
             text: {
               DEFAULT: { value: '{colors.white}' },
-              muted: { value: '{colors.neutral.mist}' },
+              // Blanco con transparencia, como en la landing anterior (white/70, white/50, white/10)
+              muted: { value: '{colors.white/70}' },
+              subtle: { value: '{colors.white/50}' },
             },
-            border: { value: '{colors.brand.navySoft}' },
+            border: { value: '{colors.white/10}' },
           },
           secondary: {
             DEFAULT: { value: '{colors.brand.blue}' },
@@ -66,7 +66,7 @@ export default defineConfig({
   },
   globalCss: {
     html: { colorScheme: 'light' },
-    body: { fontFamily: 'inter' },
+    body: { fontFamily: 'inter', bg: 'bg', color: 'text' },
   },
   outdir: "styled-system",
 })

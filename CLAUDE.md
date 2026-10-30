@@ -36,6 +36,15 @@ npm create cloudflare@latest -- <nombre-del-repo> --framework=react-router
 
 Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflare/vite-plugin` (sin `^`), y declarar `engines` + `.nvmrc` (React Router 8 exige Node >= 22.22). Usar `npm ci` en CI.
 
+## Rutas y estructura de `app/`
+
+- `app/routes/landing.tsx` es la ruta `/`: la **única** prerenderizada. Todo lo demás es SPA (ver "Prerender de la landing").
+- `app/routes/turnos.tsx` es la primera ruta SPA (`/turnos`), con `clientLoader` y `default`. Hoy el loader devuelve una lista vacía: cuando exista la API, llama a `api.turnos.$get`.
+- Para sumar una pantalla: crear `app/routes/<ruta>.tsx` y registrarla en `app/routes.ts`. Es SPA salvo que se agregue a `prerender` a propósito.
+- `app/components/`: `header`, `logo` y `diagonal-dash-background`, portados de la landing anterior. `app/hooks/use-active-section.ts` resalta la sección activa del menú.
+- Íconos: `@phosphor-icons/react`, importando desde `@phosphor-icons/react/ssr` (el mismo paquete que la landing anterior).
+- Los enlaces del Header (`#inicio`, `#como-funciona`, `#precios`, `#contacto`) apuntan a secciones que todavía no existen en la landing.
+
 ## Prerender de la landing
 
 - `react-router.config.ts`: `{ ssr: false, prerender: ["/"] }`.
@@ -233,19 +242,19 @@ Panda está instalado y Tailwind ya se quitó de la plantilla (paquetes, plugin 
 - CSS-in-JS de build time. Instalación según la guía oficial para React Router (<https://panda-css.com/docs/get-started/react-router>), con el plugin `@pandacss/vite` (no PostCSS).
 - `vite.config.ts`: `pandacss()` va entre el plugin de Cloudflare y `reactRouter()`.
 - Colores en dos capas, dentro de `theme.extend`:
-  - `tokens.colors` (valores crudos, la única paleta; no se usan directo en componentes): `brand.navy` `#002045`, `brand.navySoft` `#1b3556`, `brand.blue` `#0061a5`, `neutral.snow` `#f7fafc`, `neutral.mist` `#e0e3e5`, `neutral.slate` `#43474e`. Blanco, `gray.900` y `red.600` salen del preset de Panda.
-  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `text` / `text.muted`, `heading`, `border`, `primary` / `primary.text` / `primary.text.muted` / `primary.border`, `secondary` / `secondary.text`, `danger` / `danger.text`. Hoy solo tienen valor claro. Las escalas `gray`, `blue` y `red` salen del preset de Panda.
+  - `tokens.colors` (valores crudos, la única paleta; no se usan directo en componentes): `brand.navy` `#002045`, `brand.blue` `#0061a5`, `neutral.snow` `#f7fafc`, `neutral.mist` `#e0e3e5`, `neutral.slate` `#43474e`. Son los valores reales de la landing anterior (`fibonacci-turnos`). Blanco y `red.600` salen del preset de Panda.
+  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `text`, `heading`, `border`, `primary` / `primary.text` / `primary.text.muted` / `primary.text.subtle` / `primary.border`, `secondary` / `secondary.text`, `danger` / `danger.text`. Hoy solo tienen valor claro. `primary.text.muted`, `.subtle` y `primary.border` son blanco con 70 %, 50 % y 10 % de opacidad (`{colors.white/70}`), igual que el footer anterior. El `body` aplica `bg` y `text` desde `globalCss`.
   - **Modo oscuro postergado a propósito**: soportarlo obliga a probar cada pantalla dos veces. El sitio está fijado en claro (`color-scheme: light`, sin logo oscuro). Como los componentes usan roles, sumarlo después es pasar cada valor de `semanticTokens` a `{ base, _osDark }` (sigue la preferencia del sistema, sin JavaScript) y restaurar `color-scheme: light dark`.
   - Los roles son una **sugerencia**, no una obligación: conviene usarlos (`css({ bg: "bg", color: "text" })`) para mantener coherencia y el modo oscuro, pero se puede improvisar con otros colores cuando haga falta. Si un color improvisado se repite, promoverlo a rol.
   - El par `x` / `x.text` es siempre fondo y el texto que va encima (por ejemplo `bg: "primary", color: "primary.text"`).
   - `primary` también sirve de fondo de secciones enteras (como el footer): ahí se usan `primary.text` para lo principal, `primary.text.muted` para bajadas y enlaces y `primary.border` para divisorias.
-  - `heading` es el navy como color de **texto** en títulos grandes; no confundir con `primary`, que es una superficie. `bg.muted`, `border` y `primary.text.muted` comparten el valor crudo `neutral.mist`; ningún hex se repite en los roles. `brand.navySoft` (que usa `primary.border`) está estimado de capturas de la landing anterior.
+  - `heading` es el navy como color de **texto** en títulos grandes; no confundir con `primary`, que es una superficie. `bg.muted` y `border` comparten el valor crudo `neutral.mist`; ningún hex se repite en los roles.
 - `panda.config.ts`: presets `@pandacss/preset-base` y `@pandacss/preset-panda`, `include` sobre `./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}` y `outdir: "styled-system"`. Toda ruta o componente nuevo tiene que quedar cubierto por `include`.
 - `strictTokens` **no** está activado. Se puede reconsiderar cuando estén definidos los tokens propios del diseño.
 - `styled-system/` se genera con `panda codegen` (script `prepare`, corre con `npm ci`) y está en `.gitignore`. No se commitea.
 - `app/app.css` solo declara el orden de capas (`@layer reset, base, tokens, recipes, utilities;`) e importa la fuente (`@fontsource-variable/inter`); el plugin inyecta el CSS generado. Se carga desde `app/root.tsx` con `app.css?url` y la función `links`.
 - Imports: `import { css } from "styled-system/css"`. El alias está en `paths` de `tsconfig.cloudflare.json`. **No** agregar `styled-system` al `include` del tsconfig: con `checkJs` TypeScript revisa los `.js` generados y falla el `typecheck`.
-- Las clases utilitarias (`className="flex ..."`) que quedan en `app/root.tsx` y `app/welcome/welcome.tsx` son de la plantilla y no hacen nada: reemplazarlas con `css()` al tocar esas pantallas.
+- Las clases utilitarias (`className="flex ..."`) que quedan en el `ErrorBoundary` de `app/root.tsx` son de la plantilla y no hacen nada: reemplazarlas con `css()` al tocar esa pantalla.
 - Opcional, no activado: `pandacss({ transform: true })` reescribe las llamadas estáticas a `css()` como strings de clases en build y evita el runtime de estilos.
 - Aprendizaje didáctico: documentar lo que se aprende para que sirva a otros.
 
