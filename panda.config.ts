@@ -34,12 +34,19 @@ export default defineConfig({
             DEFAULT: { value: '{colors.gray.900}' },
             muted: { value: '#43474e' },
           },
+          // Títulos grandes: el navy de la marca como color de texto
+          heading: { value: '{colors.brand.navy}' },
           border: {
             DEFAULT: { value: '{colors.gray.300}' },
           },
           primary: {
             DEFAULT: { value: '{colors.brand.navy}' },
-            text: { value: '#ffffff' },
+            text: {
+              DEFAULT: { value: '#ffffff' },
+              // Valores estimados a ojo de la landing anterior; confirmar con el diseñador
+              muted: { value: '#c4cfdf' },
+            },
+            border: { value: '#1b3556' },
           },
           secondary: {
             DEFAULT: { value: '{colors.brand.blue}' },
