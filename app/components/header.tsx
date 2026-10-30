@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ListIcon, X } from "@phosphor-icons/react/ssr";
-import { css } from "styled-system/css";
+import { Link } from "react-router";
+import { css, cva } from "styled-system/css";
 
 import { useActiveSection } from "~/hooks/use-active-section";
 import { Logo } from "./logo";
@@ -13,16 +14,25 @@ const LINKS = [
 ];
 const SECTIONS = LINKS.map((link) => link.id);
 
-const RESERVAR_HREF = "/turnos";
+const RESERVAR_LINK = "/turnos";
 
-const overlay = css.raw({
-  position: "fixed",
-  inset: "0",
-  zIndex: "40",
-  bg: "black/50",
-  transitionProperty: "opacity",
-  transitionDuration: "300ms",
-  md: { display: "none" },
+const overlay = cva({
+  base: {
+    position: "fixed",
+    inset: "0",
+    zIndex: "40",
+    bg: "black/50",
+    transitionProperty: "opacity",
+    transitionDuration: "300ms",
+    md: { display: "none" },
+  },
+  variants: {
+    open: {
+      true: { opacity: "1", pointerEvents: "auto" },
+      false: { opacity: "0", pointerEvents: "none" },
+    },
+  },
+  defaultVariants: { open: false },
 });
 
 const header = css({
@@ -55,20 +65,26 @@ const desktopNav = css({
   md: { display: "flex" },
 });
 
-const desktopLink = css.raw({
-  color: "text",
-  transitionProperty: "color",
-  transitionDuration: "200ms",
-  _hover: { color: "heading" },
-});
-
-const desktopLinkActive = css.raw({
-  color: "secondary",
-  borderBottomWidth: "2px",
-  borderColor: "secondary",
-  pb: "1",
-  transitionProperty: "color",
-  transitionDuration: "200ms",
+const desktopLink = cva({
+  base: {
+    transitionProperty: "color",
+    transitionDuration: "200ms",
+  },
+  variants: {
+    active: {
+      true: {
+        color: "secondary",
+        borderBottomWidth: "2px",
+        borderColor: "secondary",
+        pb: "1",
+      },
+      false: {
+        color: "text",
+        _hover: { color: "heading" },
+      },
+    },
+  },
+  defaultVariants: { active: false },
 });
 
 const button = css.raw({
@@ -111,11 +127,19 @@ const mobileNav = css({
   md: { display: "none" },
 });
 
-const mobileLink = css.raw({
-  py: "3",
-  color: "text",
-  borderBottomWidth: "1px",
-  borderColor: "border",
+const mobileLink = cva({
+  base: {
+    py: "3",
+    borderBottomWidth: "1px",
+    borderColor: "border",
+  },
+  variants: {
+    active: {
+      true: { color: "secondary" },
+      false: { color: "text" },
+    },
+  },
+  defaultVariants: { active: false },
 });
 
 export function Header() {
@@ -146,10 +170,7 @@ export function Header() {
     <>
       <div
         aria-hidden="true"
-        className={css(overlay, {
-          opacity: isMenuOpen ? "1" : "0",
-          pointerEvents: isMenuOpen ? "auto" : "none",
-        })}
+        className={overlay({ open: isMenuOpen })}
         onClick={() => setIsMenuOpen(false)}
       />
       <header ref={headerRef} className={header}>
@@ -161,18 +182,16 @@ export function Header() {
               <a
                 key={id}
                 href={`#${id}`}
-                className={css(
-                  activeId === id ? desktopLinkActive : desktopLink,
-                )}
+                className={desktopLink({ active: activeId === id })}
               >
                 {label}
               </a>
             ))}
           </nav>
 
-          <a href={RESERVAR_HREF} className={desktopCta}>
+          <Link to={RESERVAR_LINK} prefetch="intent" className={desktopCta}>
             Reservar clase
-          </a>
+          </Link>
 
           <button
             className={menuButton}
@@ -195,16 +214,14 @@ export function Header() {
                 key={id}
                 href={`#${id}`}
                 onClick={() => setIsMenuOpen(false)}
-                className={css(mobileLink, {
-                  color: activeId === id ? "secondary" : "text",
-                })}
+                className={mobileLink({ active: activeId === id })}
               >
                 {label}
               </a>
             ))}
-            <a href={RESERVAR_HREF} className={mobileCta}>
+            <Link to={RESERVAR_LINK} prefetch="intent" className={mobileCta}>
               Reservar clase
-            </a>
+            </Link>
           </nav>
         )}
       </header>
