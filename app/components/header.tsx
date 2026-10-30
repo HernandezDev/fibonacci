@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { ListIcon, X } from "@phosphor-icons/react/ssr";
+import { ListIcon, XIcon } from "@phosphor-icons/react/ssr";
 import { Link } from "react-router";
-import { css, cva } from "styled-system/css";
+import { css, cva, cx } from "styled-system/css";
 
 import { useActiveSection } from "~/hooks/use-active-section";
+import { button } from "~/styles/button";
 import { Logo } from "./logo";
 
 const LINKS = [
@@ -16,23 +17,14 @@ const SECTIONS = LINKS.map((link) => link.id);
 
 const RESERVAR_LINK = "/turnos";
 
-const overlay = cva({
-  base: {
-    position: "fixed",
-    inset: "0",
-    zIndex: "40",
-    bg: "black/50",
-    transitionProperty: "opacity",
-    transitionDuration: "300ms",
-    md: { display: "none" },
-  },
-  variants: {
-    open: {
-      true: { opacity: "1", pointerEvents: "auto" },
-      false: { opacity: "0", pointerEvents: "none" },
-    },
-  },
-  defaultVariants: { open: false },
+const overlay = css.raw({
+  position: "fixed",
+  inset: "0",
+  zIndex: "40",
+  bg: "black/50",
+  transitionProperty: "opacity",
+  transitionDuration: "300ms",
+  md: { display: "none" },
 });
 
 const header = css({
@@ -87,26 +79,12 @@ const desktopLink = cva({
   defaultVariants: { active: false },
 });
 
-const button = css.raw({
-  alignItems: "center",
-  justifyContent: "center",
-  px: "6",
-  py: "2.5",
-  bg: "primary",
-  color: "primary.text",
-  rounded: "lg",
-});
+const desktopCta = cx(
+  button(),
+  css({ display: "none", md: { display: "inline-flex" } }),
+);
 
-const desktopCta = css(button, {
-  display: "none",
-  shadow: "md",
-  transitionProperty: "colors",
-  transitionDuration: "150ms",
-  _hover: { bg: "primary/90" },
-  md: { display: "inline-flex" },
-});
-
-const mobileCta = css(button, { display: "inline-flex", mt: "3" });
+const mobileCta = cx(button(), css({ display: "inline-flex", mt: "3" }));
 
 const menuButton = css({
   color: "heading",
@@ -170,7 +148,10 @@ export function Header() {
     <>
       <div
         aria-hidden="true"
-        className={overlay({ open: isMenuOpen })}
+        className={css(overlay, {
+          opacity: isMenuOpen ? "1" : "0",
+          pointerEvents: isMenuOpen ? "auto" : "none",
+        })}
         onClick={() => setIsMenuOpen(false)}
       />
       <header ref={headerRef} className={header}>
@@ -200,7 +181,7 @@ export function Header() {
             onClick={() => setIsMenuOpen((prev) => !prev)}
           >
             {isMenuOpen ? (
-              <X size={24} weight="regular" />
+              <XIcon size={24} weight="regular" />
             ) : (
               <ListIcon size={24} weight="regular" />
             )}
