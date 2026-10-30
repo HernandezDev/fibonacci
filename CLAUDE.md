@@ -24,7 +24,8 @@ Sistema de reserva de turnos para clases particulares de matemática (Instituto 
 | Auth | Better Auth |
 | Datos en el cliente | Etapa 1: route modules de React Router (`default` + `clientLoader` + `clientAction`), sin Zustand ni TanStack Query |
 | Rate limit / sesiones | Etapa 1: en la base de datos (Neon). **Etapa 2:** Upstash Redis (cuenta de Upstash aparte de la de LALIsta) |
-| CSS | Panda CSS (decisión de fondo; ver abajo) |
+| CSS | Panda CSS, integrado con el plugin de Vite (ver "Panda CSS") |
+| Fuente | Inter variable, alojada en el proyecto con `@fontsource-variable/inter` |
 | Paquetes | npm |
 
 Crear el proyecto base con:
@@ -226,10 +227,40 @@ Frontend y API viven en el mismo repo, así que el contrato se comparte por **in
 
 ## Panda CSS
 
-- Motivación: **contrato de diseño** tipado, que el diseñador pueda trabajar sobre tokens y que el equipo no se desvíe de la guía de estilos. `strictTokens` marca cualquier valor fuera del sistema (algo que Tailwind no distingue).
-- CSS-in-JS de build time: genera `styled-system/` (correr `panda codegen` en el script `prepare`), integración vía PostCSS.
-- Si se adopta, **sacar Tailwind de la plantilla**.
+Panda está instalado y Tailwind ya se quitó de la plantilla (paquetes, plugin de Vite y `@import` del CSS).
+
+- Motivación: **contrato de diseño** tipado, que el diseñador pueda trabajar sobre tokens y que el equipo no se desvíe de la guía de estilos.
+- CSS-in-JS de build time. Instalación según la guía oficial para React Router (<https://panda-css.com/docs/get-started/react-router>), con el plugin `@pandacss/vite` (no PostCSS).
+- `vite.config.ts`: `pandacss()` va entre el plugin de Cloudflare y `reactRouter()`.
+- Colores en dos capas, dentro de `theme.extend`:
+  - `tokens.colors.brand` (`navy` `#002045`, `blue` `#0061a5`): valores crudos de marca, no se usan directo en componentes.
+  - `semanticTokens.colors`: los **roles** que usan los componentes: `bg` / `bg.muted`, `fg` / `fg.muted`, `border`, `primary` / `primary.fg`, `secondary` / `secondary.fg`, `danger` / `danger.fg`. Cada uno tiene valor claro y oscuro (`_osDark`, sigue la preferencia del sistema, sin JavaScript). Las escalas `gray`, `blue` y `red` salen del preset de Panda.
+  - Los roles son una **sugerencia**, no una obligación: conviene usarlos (`css({ bg: "bg", color: "fg" })`) para mantener coherencia y el modo oscuro, pero se puede improvisar con otros colores cuando haga falta. Si un color improvisado se repite, promoverlo a rol.
+  - El par `x` / `x.fg` es siempre fondo y el texto que va encima (por ejemplo `bg: "primary", color: "primary.fg"`).
+- `panda.config.ts`: presets `@pandacss/preset-base` y `@pandacss/preset-panda`, `include` sobre `./app/**/{**,.client,.server}/**/*.{js,jsx,ts,tsx}` y `outdir: "styled-system"`. Toda ruta o componente nuevo tiene que quedar cubierto por `include`.
+- `strictTokens` **no** está activado. Se puede reconsiderar cuando estén definidos los tokens propios del diseño.
+- `styled-system/` se genera con `panda codegen` (script `prepare`, corre con `npm ci`) y está en `.gitignore`. No se commitea.
+- `app/app.css` solo declara el orden de capas (`@layer reset, base, tokens, recipes, utilities;`) e importa la fuente (`@fontsource-variable/inter`); el plugin inyecta el CSS generado. Se carga desde `app/root.tsx` con `app.css?url` y la función `links`.
+- Imports: `import { css } from "styled-system/css"`. El alias está en `paths` de `tsconfig.cloudflare.json`. **No** agregar `styled-system` al `include` del tsconfig: con `checkJs` TypeScript revisa los `.js` generados y falla el `typecheck`.
+- Las clases utilitarias (`className="flex ..."`) que quedan en `app/root.tsx` y `app/welcome/welcome.tsx` son de la plantilla y no hacen nada: reemplazarlas con `css()` al tocar esas pantallas.
+- Opcional, no activado: `pandacss({ transform: true })` reescribe las llamadas estáticas a `css()` como strings de clases en build y evita el runtime de estilos.
 - Aprendizaje didáctico: documentar lo que se aprende para que sirva a otros.
+
+## Fuente
+
+- Inter variable con `@fontsource-variable/inter`, importada en `app/app.css`. La familia es `"Inter Variable"`.
+- Fuente única de verdad: el token `fonts.inter` de `panda.config.ts`. El `body` la aplica desde `globalCss` (`fontFamily: 'inter'`), junto con `color-scheme: light dark` en `html`. No repetir el `font-family` en `app.css`.
+- No se usa Google Fonts: evita requests a dominios externos, el envío de datos de cada visita a Google y la dependencia de un tercero. Los `.woff2` salen del propio Worker y la versión queda fijada en el lockfile.
+
+## Skills del agente
+
+Instaladas con `npx skills add` (alcance de proyecto): el archivo real queda en `.agents/skills/`, hay un symlink en `.claude/skills/` y las versiones se registran en `skills-lock.json`. Para sumar una, usar el mismo comando **sin** `-a claude-code`, que copia la carpeta en vez de crear el symlink.
+
+- Better Auth: `better-auth-best-practices`, `better-auth-security-best-practices`, `create-auth`, `email-and-password-best-practices`, `organization-best-practices`, `two-factor-authentication-best-practices`.
+- Datos y API: `drizzle-orm`, `hono`.
+- Frontend: `react-router-framework-mode`, `panda-css`, `panda-css-theming`.
+- Cloudflare: `workers-best-practices`, `wrangler`.
+- Zod: se probó una skill y se quitó. Su ejemplo de `z.nativeEnum` con un `enum` de TypeScript choca con erasable syntax. Si se vuelve a instalar, usar `z.enum([...])` y `z.infer`, nunca `enum`.
 
 ## Capa de cliente (etapa 1)
 
@@ -316,7 +347,7 @@ La materia de desarrollo web usa React Router como librería; usarlo como framew
 
 - Bootstrap con la plantilla de React Router, `ssr: false` + `prerender: ["/"]`, versiones fijas.
 - Hono para `/api/*` en `workers/app.ts`, `.env.example`, Drizzle + `pg`, binding de Hyperdrive.
-- Better Auth con sesiones y rate limit en la base de datos (etapa 1); decisión final sobre Panda.
+- Better Auth con sesiones y rate limit en la base de datos (etapa 1).
 - Primera ruta de ejemplo con `clientLoader` + `clientAction` + cliente `hc`.
 - Verificar `npm run typecheck` y la línea de prerender del build.
 - **Etapa 2:** Upstash, `secondaryStorage` y limitador por cuenta (ver "Plan por etapas").
