@@ -1,4 +1,5 @@
 import { FunctionIcon } from "@phosphor-icons/react/ssr";
+import { Link } from "react-router";
 import { css } from "styled-system/css";
 
 interface LogoProps {
@@ -28,8 +29,8 @@ export function Logo({ size = "md", variant = "primary" }: LogoProps) {
   });
 
   return (
-    <a
-      href="#inicio"
+    <Link
+      to="/"
       className={css({ display: "flex", alignItems: "flex-end" })}
       aria-label="Instituto Fibonacci"
     >
@@ -41,6 +42,6 @@ export function Logo({ size = "md", variant = "primary" }: LogoProps) {
         className={css({ color, ml: "0.5", mr: "-1" })}
       />
       <span className={textClass}>ibonacci</span>
-    </a>
+    </Link>
   );
 }
