@@ -1,0 +1,7 @@
+# TODO: sacar este bloque el día del lanzamiento oficial — bloquea TODO el sitio de Google
+/*
+  X-Robots-Tag: noindex, nofollow
+
+# Este bloque queda para siempre — workers.dev nunca debe indexarse
+https://:version.:subdomain.workers.dev/*
+  X-Robots-Tag: noindex, nofollow
