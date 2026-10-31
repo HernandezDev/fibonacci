@@ -1,16 +1,15 @@
 import { DiagonalDashBackground } from "~/components/Diagonal-dash-background";
 import { Header } from "~/components/LandingHeader";
+import { seo } from "~/lib/seo";
 
 export function meta() {
-  return [
-    {
-      title: "Instituto Fibonacci — Clases particulares de matemática online",
-    },
-    {
-      name: "description",
-      content: "Sistema de reserva de turnos del Instituto Fibonacci.",
-    },
-  ];
+  return seo({
+    title: "Instituto Fibonacci — Clases particulares de matemática online",
+    description:
+      "Clases particulares de matemática online. Reservá tu turno en el Instituto Fibonacci.",
+    url: "https://fibonacci.com.ar",
+    image: "https://fibonacci.com.ar/og-image.png",
+  });
 }
 
 export default function Landing() {

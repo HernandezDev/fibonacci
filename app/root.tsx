@@ -9,9 +9,13 @@ import {
 
 import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
+import { preloadFonts } from "./lib/preload";
 
 export const links: Route.LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
+  ...preloadFonts(),
+  { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+  { rel: "icon", href: "/favicon.ico", sizes: "any" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
