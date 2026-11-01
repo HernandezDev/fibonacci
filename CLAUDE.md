@@ -62,7 +62,11 @@ Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflar
 ## Base de datos: Neon + Hyperdrive + Drizzle
 
 - **Crear Hyperdrive con `--caching-disabled`.** Por defecto el caché de queries está activo (max_age 60 s, SWR 15 s) y **no se invalida con escrituras**: leerías datos viejos tras reservar un turno.
-- Hyperdrive creado: nombre `fibonacci-db`, ID `aac32d06ed2849528e1aab9e58aea881`, **sin caché**. Apunta al **host directo** de Neon (sin `-pooler`): Hyperdrive ya hace su propio pooling.
+- Hyperdrive creado: nombre `fibonacci-db`, ID `aac32d06ed2849528e1aab9e58aea881`, **sin caché**. Apunta al **host directo** de la rama `production` (sin `-pooler`): Hyperdrive ya hace su propio pooling.
+- Previews: `wrangler preview` (lo que corre Workers Builds en ramas no productivas) no hereda los bindings y exige un bloque `previews` en `wrangler.jsonc`. Usa `fibonacci-db-dev` (ID `ea6dfb7cd7de4fabb822e9d421f6bb4b`, sin caché), que apunta a la rama `dev`, para que una preview nunca escriba en `production`. Si se agrega un binding nuevo, hay que declararlo también ahí.
+- `wrangler.jsonc`: `placement.region` en `aws:sa-east-1` porque Hyperdrive no acerca el Worker a la base (también aplica a las previews), y `observability.traces` activado aparte, porque `observability.enabled` no lo hace (muestreo del 1 %).
+- Las URLs de preview son **públicas** salvo que se protejan con Cloudflare Access. Las de `workers.dev` llevan `noindex` automático.
+- Crear o editar los Hyperdrive **desde el panel de Cloudflare**: los comandos por `npx` imprimen los argumentos ya expandidos (`npm notice`), así que una `--connection-string` deja la contraseña en pantalla. Editar una configuración no cambia su ID.
 - Cliente `pg` **por request** (no global) dentro del Worker. Requiere `nodejs_compat` en `wrangler.jsonc`. Se usa con `withDb(env, ctx, async (db) => ...)` de `workers/db/client.ts`: abre la conexión, corre la función y recién después cierra con `ctx.waitUntil(client.end())`. **No** llamar a `client.end()` antes de consultar: `end()` se ejecuta al llamarlo, no al responder, y cierra el cliente antes de la consulta (`Client was closed and is not queryable`).
 - `withDb` pide solo `Pick<ExecutionContext, "waitUntil">`: el `c.executionCtx` de Hono no es el mismo tipo que el `ExecutionContext` de Cloudflare.
 - Rol: hoy se usa `fibonacci_owner`. Queda pendiente crear un **rol dedicado** (`hyperdrive-user`) con los permisos mínimos para la app.

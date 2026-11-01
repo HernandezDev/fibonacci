@@ -19,18 +19,21 @@
 			"localConnectionString": "postgres://usuario:clave@localhost:5432/fibonacci"
 		}
 	],
-	"vars": {
-		"VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
+	// Las previews (`wrangler preview`) no heredan los bindings: usan
+	// fibonacci-db-dev, que apunta a la rama `dev` de Neon, nunca a production.
+	"previews": {
+		"hyperdrive": [
+			{ "binding": "HYPERDRIVE", "id": "ea6dfb7cd7de4fabb822e9d421f6bb4b" }
+		]
 	},
+	// Hyperdrive no acerca el Worker a la base: Neon está en AWS sa-east-1.
+	// También aplica a las previews.
+	"placement": { "region": "aws:sa-east-1" },
 	"observability": {
-		"enabled": true
+		"enabled": true,
+		"traces": { "enabled": true, "head_sampling_rate": 0.01 }
 	},
 	"upload_source_maps": true
-	/**
-	 * Smart Placement
-	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": {  "mode": "smart" }
 	/**
 	 * Bindings
 	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
