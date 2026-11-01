@@ -7,6 +7,18 @@
 	"name": "fibonacci",
 	"compatibility_date": "2026-10-23",
 	"main": "./workers/app.ts",
+	"compatibility_flags": ["nodejs_compat"],
+	// Hyperdrive (fibonacci-db), sin caché. El build (prerender) y Workers Builds
+	// exigen una cadena local aunque no consulten la base: `localConnectionString`
+	// es solo un relleno sin credenciales. En desarrollo, la cadena real va en
+	// CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE (.env).
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "aac32d06ed2849528e1aab9e58aea881",
+			"localConnectionString": "postgres://usuario:clave@localhost:5432/fibonacci"
+		}
+	],
 	"vars": {
 		"VALUE_FROM_CLOUDFLARE": "Hello from Cloudflare"
 	},
