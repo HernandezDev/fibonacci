@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { ListIcon, XIcon } from "@phosphor-icons/react/ssr";
-import { Link } from "react-router";
-import { css, cva, cx } from "styled-system/css";
+import { css, cva } from "styled-system/css";
 
 import { useActiveSection } from "~/hooks/use-active-section";
-import { button } from "~/styles/button";
+import { ButtonLink } from "./Button";
 import { Logo } from "./Logo";
 
 const LINKS = [
@@ -79,12 +78,12 @@ const desktopLink = cva({
   defaultVariants: { active: false },
 });
 
-const desktopCta = cx(
-  button(),
-  css({ display: "none", md: { display: "inline-flex" } }),
-);
+const desktopCta = css({
+  display: "none",
+  md: { display: "inline-flex" },
+});
 
-const mobileCta = cx(button(), css({ display: "inline-flex", mt: "3" }));
+const mobileCta = css({ display: "inline-flex", mt: "3" });
 
 const menuButton = css({
   color: "heading",
@@ -170,9 +169,9 @@ export function Header() {
             ))}
           </nav>
 
-          <Link to={RESERVAR_LINK} prefetch="intent" className={desktopCta}>
+          <ButtonLink to={RESERVAR_LINK} prefetch="intent" className={desktopCta}>
             Reservar clase
-          </Link>
+          </ButtonLink>
 
           <button
             className={menuButton}
@@ -200,9 +199,9 @@ export function Header() {
                 {label}
               </a>
             ))}
-            <Link to={RESERVAR_LINK} prefetch="intent" className={mobileCta}>
+            <ButtonLink to={RESERVAR_LINK} prefetch="intent" className={mobileCta}>
               Reservar clase
-            </Link>
+            </ButtonLink>
           </nav>
         )}
       </header>
