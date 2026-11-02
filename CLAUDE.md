@@ -42,7 +42,7 @@ Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflar
 - `app/routes/landing.tsx` es la ruta `/`: la **única** prerenderizada. Todo lo demás es SPA (ver "Prerender de la landing").
 - `app/routes/turnos.tsx` es la primera ruta SPA (`/turnos`), con `clientLoader` y `default`. Hoy el loader devuelve una lista vacía: cuando exista la API, llama a `api.turnos.$get`.
 - Para sumar una pantalla: crear `app/routes/<ruta>.tsx` y registrarla en `app/routes.ts`. Es SPA salvo que se agregue a `prerender` a propósito.
-- `app/components/`: `LandingHeader`, `Logo` y `Diagonal-dash-background`, portados de la landing anterior. `Logo` es un `Link` de React Router a `/` (sirve en cualquier pantalla, también en la SPA). `app/hooks/use-active-section.ts` resalta la sección activa del menú.
+- `app/components/`: `Button` (ver "Componentes estilizados"), `LandingHeader`, `Logo` y `Diagonal-dash-background`, portados de la landing anterior. `Logo` es un `Link` de React Router a `/` (sirve en cualquier pantalla, también en la SPA). `app/hooks/use-active-section.ts` resalta la sección activa del menú.
 - `app/lib/`: `seo.ts` (helper `seo()` para el `meta` de rutas públicas), `preload.ts` (`preloadFonts()`, precarga de la fuente) y `api.ts` (cliente `hc` de Hono RPC).
 - Íconos: `@phosphor-icons/react`, importando desde `@phosphor-icons/react/ssr` (el mismo paquete que la landing anterior).
 - Los enlaces del Header (`#inicio`, `#como-funciona`, `#precios`, `#contacto`) apuntan a secciones que todavía no existen en la landing.
@@ -311,6 +311,20 @@ Panda está instalado y Tailwind ya se quitó de la plantilla (paquetes, plugin 
 - Las clases utilitarias (`className="flex ..."`) que quedan en el `ErrorBoundary` de `app/root.tsx` son de la plantilla y no hacen nada: reemplazarlas con `css()` al tocar esa pantalla.
 - Opcional, no activado: `pandacss({ transform: true })` reescribe las llamadas estáticas a `css()` como strings de clases en build y evita el runtime de estilos.
 - Aprendizaje didáctico: documentar lo que se aprende para que sirva a otros.
+
+### Componentes estilizados
+
+Patrón: `app/components/Button.tsx`. Las reglas se apoyan en la documentación de Panda ([css, cx y cva](https://panda-css.com/docs/reference/css), [estilos dinámicos](https://panda-css.com/docs/styling/dynamic-styling)). Pasar `className` generado en el sitio de uso no está documentado ahí; referencia: [`cybersemics/em`, PR 5949](https://github.com/cybersemics/em/pull/5949).
+
+- La receta es un `cva` dentro del archivo del componente, sin exportar. Un componente por elemento sobre la misma receta (`Button` y `ButtonLink`).
+- Los estilos de afuera entran solo por `className`, generado donde se usa: `className={css({ ... })}`. El componente lo suma con `cx(receta({ variant }), className)`.
+
+A tener en cuenta:
+
+- Nunca pasar `css.raw` ni llamar a `css()` con argumentos que llegan por props: Panda no los extrae (`panda_call_unextractable`).
+- `cx` no resuelve conflictos: la receta no define propiedades que los consumidores vayan a cambiar (el botón no define `display`).
+- Los valores calculados en runtime no se extraen: usar variantes o una variable CSS.
+- Comprobar con `npx panda cssgen --outfile <archivo>`: debe dar `diagnostics: 0`.
 
 ## Fuente
 
