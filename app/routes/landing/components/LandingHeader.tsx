@@ -1,8 +1,8 @@
 import { css, cva } from "styled-system/css";
 
-import { useActiveSection } from "~/hooks/use-active-section";
-import { ButtonLink } from "./Button";
-import { Logo } from "./Logo";
+import { useActiveSection } from "../hooks/use-active-section";
+import { ButtonLink } from "~/components/Button";
+import { Logo } from "~/components/Logo";
 import { MobileMenu } from "./MobileMenu";
 
 const LINKS = [

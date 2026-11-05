@@ -39,10 +39,13 @@ Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflar
 
 ## Rutas y estructura de `app/`
 
-- `app/routes/landing.tsx` es la ruta `/`: la **única** prerenderizada. Todo lo demás es SPA (ver "Prerender de la landing").
-- `app/routes/turnos.tsx` es la primera ruta SPA (`/turnos`), con `clientLoader` y `default`. Hoy el loader devuelve una lista vacía: cuando exista la API, llama a `api.turnos.$get`.
-- Para sumar una pantalla: crear `app/routes/<ruta>.tsx` y registrarla en `app/routes.ts`. Es SPA salvo que se agregue a `prerender` a propósito.
-- `app/components/`: `Button` (ver "Componentes estilizados"), `LandingHeader`, `Logo` y `Diagonal-dash-background`, portados de la landing anterior. `Logo` es un `Link` de React Router a `/` (sirve en cualquier pantalla, también en la SPA). `app/hooks/use-active-section.ts` resalta la sección activa del menú.
+- **Una carpeta por vista** en `app/routes/<vista>/`: el route module `<vista>.tsx`, y si hacen falta, `components/` y `hooks/` con lo que usa **solo** esa vista. Las carpetas `components/` y `hooks/` se crean cuando aparece el primer archivo (git no guarda carpetas vacías).
+- Lo que comparten varias vistas va en `app/components/` (y `app/hooks/` si aparece un hook compartido). Si algo de una vista empieza a usarse en otra, se mueve ahí.
+- Imports: dentro de la vista, relativos (`./components/...`, `../hooks/...`); lo compartido, con el alias `~/` (`~/components/Button`).
+- `app/routes/landing/landing.tsx` es la ruta `/`: la **única** prerenderizada. Todo lo demás es SPA (ver "Prerender de la landing"). Sus componentes (`LandingHeader`, `MobileMenu`, `Diagonal-dash-background`) y el hook `use-active-section` (resalta la sección activa del menú) están en su carpeta.
+- `app/routes/turnos/turnos.tsx` es la primera ruta SPA (`/turnos`), con `clientLoader` y `default`. Hoy el loader devuelve una lista vacía: cuando exista la API, llama a `api.turnos.$get`.
+- Para sumar una pantalla: crear `app/routes/<vista>/<vista>.tsx` y registrarla en `app/routes.ts` (las rutas se declaran a mano, no por nombre de archivo). Es SPA salvo que se agregue a `prerender` a propósito. Los tipos siguen en `./+types/<vista>`.
+- `app/components/`: `Button` (ver "Componentes estilizados") y `Logo`, compartidos. `Logo` es un `Link` de React Router a `/` (sirve en cualquier pantalla, también en la SPA).
 - `app/lib/`: `seo.ts` (helper `seo()` para el `meta` de rutas públicas), `preload.ts` (`preloadFonts()`, precarga de la fuente) y `api.ts` (cliente `hc` de Hono RPC).
 - Íconos: `@phosphor-icons/react`, importando desde `@phosphor-icons/react/ssr` (el mismo paquete que la landing anterior).
 - Los enlaces del Header (`#inicio`, `#como-funciona`, `#precios`, `#contacto`) apuntan a secciones que todavía no existen en la landing.
