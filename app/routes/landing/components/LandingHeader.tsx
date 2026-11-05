@@ -13,7 +13,7 @@ const LINKS = [
 ];
 const SECTIONS = LINKS.map((link) => link.id);
 
-const RESERVAR_LINK = "/turnos";
+const RESERVAR_LINK = "/home";
 
 const header = css({
   position: "fixed",
