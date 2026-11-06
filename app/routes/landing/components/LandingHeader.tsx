@@ -1,8 +1,8 @@
 import { css, cva } from "styled-system/css";
 
-import { useActiveSection } from "~/hooks/use-active-section";
-import { ButtonLink } from "./Button";
-import { Logo } from "./Logo";
+import { useActiveSection } from "../hooks/use-active-section";
+import { ButtonLink } from "~/components/Button";
+import { Logo } from "~/components/Logo";
 import { MobileMenu } from "./MobileMenu";
 
 const LINKS = [
@@ -13,7 +13,7 @@ const LINKS = [
 ];
 const SECTIONS = LINKS.map((link) => link.id);
 
-const RESERVAR_LINK = "/turnos";
+const RESERVAR_LINK = "/home";
 
 const header = css({
   position: "fixed",

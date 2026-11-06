@@ -1,6 +1,6 @@
 import { css } from "styled-system/css";
 
-import type { Route } from "./+types/turnos";
+import type { Route } from "./+types/login";
 
 export function meta() {
   return [{ title: "Turnos — Instituto Fibonacci" }];
