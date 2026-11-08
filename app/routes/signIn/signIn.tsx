@@ -1,19 +1,10 @@
 import { css } from "styled-system/css";
 
-import type { Route } from "./+types/signIn";
-
 export function meta() {
-  return [{ title: "Turnos — Instituto Fibonacci" }];
+  return [{ title: "Registrarse — Instituto Fibonacci" }];
 }
 
-// Todavía no hay API de turnos: cuando exista, esta lectura llama a `api.turnos.$get`.
-export function clientLoader() {
-  return { turnos: [] as { id: number; fecha: string }[] };
-}
-
-export default function Turnos({ loaderData }: Route.ComponentProps) {
-  const { turnos } = loaderData;
-
+export default function SignIn() {
   return (
     <main
       className={css({
@@ -30,17 +21,8 @@ export default function Turnos({ loaderData }: Route.ComponentProps) {
           color: "heading",
         })}
       >
-        Turnos
+        Registrarse
       </h1>
-      {turnos.length === 0 ? (
-        <p className={css({ mt: "4" })}>Todavía no hay turnos para mostrar.</p>
-      ) : (
-        <ul>
-          {turnos.map((t) => (
-            <li key={t.id}>{t.fecha}</li>
-          ))}
-        </ul>
-      )}
     </main>
   );
 }
