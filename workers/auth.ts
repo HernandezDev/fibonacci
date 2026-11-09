@@ -92,7 +92,13 @@ export function createAuth(env: Env & ProxyEnv, db: Db) {
     socialProviders: {
       google: {
         clientId: env.GOOGLE_CLIENT_ID,
-        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        // En una preview el código lo canjea producción (proxy) y el secreto no
+        // se usa. Better Auth igual exige un valor para armar el enlace a Google,
+        // así que va uno de relleno: el real no tiene que estar al alcance del
+        // código de cualquier rama.
+        clientSecret: productionURL
+          ? "no-se-usa-en-previews"
+          : env.GOOGLE_CLIENT_SECRET,
         // Deja elegir cuenta aunque haya una sola sesión de Google abierta.
         prompt: "select_account",
       },

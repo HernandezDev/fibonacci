@@ -28,8 +28,9 @@
 	// Las previews (`wrangler preview`) no heredan los bindings: usan
 	// fibonacci-db-dev, que apunta a la rama `dev` de Neon, nunca a production.
 	// Tampoco heredan `vars` ni secretos: los suyos se cargan con
-	// `wrangler preview base-config secret` (BETTER_AUTH_SECRET propio,
-	// GOOGLE_CLIENT_SECRET y OAUTH_PROXY_SECRET, el mismo que en producción).
+	// `wrangler preview base-config secret` (BETTER_AUTH_SECRET propio y
+	// OAUTH_PROXY_SECRET, el mismo que en producción). GOOGLE_CLIENT_SECRET no:
+	// en las previews el código lo canjea producción (ver workers/auth.ts).
 	"previews": {
 		"vars": {
 			"GOOGLE_CLIENT_ID": "957642735415-3p8vctcn8vsusuhiqqocfpqbhvn7dsvd.apps.googleusercontent.com",
