@@ -3,7 +3,7 @@ import { Client } from "pg";
 
 import * as schema from "./schema";
 
-type Db = NodePgDatabase<typeof schema>;
+export type Db = NodePgDatabase<typeof schema>;
 
 // Un cliente por request: Hyperdrive hace el pooling, no el Worker. Nada de
 // pool global, porque las conexiones no se pueden compartir entre requests.

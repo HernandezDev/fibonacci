@@ -7,6 +7,9 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
+// Tablas de Better Auth (user, session, account, verification, rate_limit).
+export * from "./auth-schema";
+
 // Tabla de una sola fila para verificar la conexión de punta a punta
 // (`/api/health`). Si más adelante hacen falta UUID, usar gen_random_uuid().
 export const ping = pgTable(

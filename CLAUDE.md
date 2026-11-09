@@ -22,7 +22,7 @@ Sistema de reserva de turnos para clases particulares de matemática (Instituto 
 | DB | Postgres **17** en Neon, vía Hyperdrive |
 | ORM | Drizzle con driver `pg` (Postgres.js no está soportado en Hyperdrive) |
 | IDs | UUID v4 (`gen_random_uuid()`), más `created_at` en cada tabla |
-| Auth | Better Auth. Método de acceso (¿solo Google?) y modelo de roles (¿campo `role` o plugin?) **por evaluar**: ver "Método de acceso y roles (por evaluar)" |
+| Auth | Better Auth 1.7.18: solo Google, roles con el plugin `admin` (`admin`, `profesor`, `alumno`; varios por usuario). Ver "Método de acceso y roles" |
 | Datos en el cliente | Etapa 1: route modules de React Router (`default` + `clientLoader` + `clientAction`), sin Zustand ni TanStack Query |
 | Rate limit / sesiones | Etapa 1: en la base de datos (Neon). **Etapa 2:** Upstash Redis (cuenta de Upstash aparte de la de LALIsta) |
 | CSS | Panda CSS, integrado con el plugin de Vite (ver "Panda CSS") |
@@ -43,10 +43,10 @@ Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflar
 - Lo que comparten varias vistas va en `app/components/` (y `app/hooks/` si aparece un hook compartido). Si algo de una vista empieza a usarse en otra, se mueve ahí.
 - Imports: dentro de la vista, relativos (`./components/...`, `../hooks/...`); lo compartido, con el alias `~/` (`~/components/Button`).
 - `app/routes/landing/landing.tsx` es la ruta `/`: la **única** prerenderizada. Todo lo demás es SPA (ver "Prerender de la landing"). Sus componentes (`LandingHeader`, `MobileMenu`, `Diagonal-dash-background`) y el hook `use-active-section` (resalta la sección activa del menú) están en su carpeta.
-- Rutas SPA actuales: `home` (`/home`), `login` (`/login`) y `signIn` (`/signIn`). Son páginas en blanco (solo `meta` y un título), sin `clientLoader`. La vista de turnos todavía no existe: cuando exista la API, su loader llama a `api.turnos.$get`.
+- Rutas SPA actuales: `home` (`/home`) y `login` (`/login`). `/signIn` se borró: con Google, registrarse e iniciar sesión es lo mismo. Las dos tienen `clientLoader` que consulta `authClient.getSession()` y redirige: `/home` sin sesión va a `/login`, y `/login` con sesión va a `/home`. Cada una exporta un `HydrateFallback` ("Cargando…") para la primera carga. `/login` muestra el botón de Google (`login/components/GoogleSignInButton`) y `/home`, la sesión y "Cerrar sesión". La vista de turnos todavía no existe: cuando exista la API, su loader llama a `api.turnos.$get`.
 - Para sumar una pantalla: crear `app/routes/<vista>/<vista>.tsx` y registrarla en `app/routes.ts` (las rutas se declaran a mano, no por nombre de archivo). Es SPA salvo que se agregue a `prerender` a propósito. Los tipos siguen en `./+types/<vista>`.
 - `app/components/`: `Button` (ver "Componentes estilizados") y `Logo`, compartidos. `Logo` es un `Link` de React Router a `/` (sirve en cualquier pantalla, también en la SPA).
-- `app/lib/`: `seo.ts` (helper `seo()` para el `meta` de rutas públicas), `preload.ts` (`preloadFonts()`, precarga de la fuente) y `api.ts` (cliente `hc` de Hono RPC).
+- `app/lib/`: `seo.ts` (helper `seo()` para el `meta` de rutas públicas), `preload.ts` (`preloadFonts()`, precarga de la fuente), `api.ts` (cliente `hc` de Hono RPC), `auth-client.ts` (cliente de Better Auth) y `permisos.ts` (roles y permisos, compartidos con el Worker).
 - Íconos: `@phosphor-icons/react`, importando desde `@phosphor-icons/react/ssr` (el mismo paquete que la landing anterior).
 - Los enlaces del Header (`#inicio`, `#como-funciona`, `#precios`, `#contacto`) apuntan a secciones que todavía no existen en la landing.
 
@@ -73,14 +73,15 @@ Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflar
 - Cliente `pg` **por request** (no global) dentro del Worker. Requiere `nodejs_compat` en `wrangler.jsonc`. Se usa con `withDb(env, ctx, async (db) => ...)` de `workers/db/client.ts`: abre la conexión, corre la función y recién después cierra con `ctx.waitUntil(client.end())`. **No** llamar a `client.end()` antes de consultar: `end()` se ejecuta al llamarlo, no al responder, y cierra el cliente antes de la consulta (`Client was closed and is not queryable`).
 - `withDb` pide solo `Pick<ExecutionContext, "waitUntil">`: el `c.executionCtx` de Hono no es el mismo tipo que el `ExecutionContext` de Cloudflare.
 - Rol: hoy se usa `fibonacci_owner`. Queda pendiente crear un **rol dedicado** (`hyperdrive-user`) con los permisos mínimos para la app.
-- `wrangler.jsonc`: binding `HYPERDRIVE`, flag `nodejs_compat` y un `localConnectionString` **de relleno, sin credenciales reales**. Hace falta porque el build (prerender) y Workers Builds exigen una cadena local aunque no consulten la base. La real va en `.env`.
+- `wrangler.jsonc`: `vars` con `GOOGLE_CLIENT_ID` (público: viaja en la URL de Google), binding `HYPERDRIVE`, flag `nodejs_compat` y un `localConnectionString` **de relleno, sin credenciales reales**. Hace falta porque el build (prerender) y Workers Builds exigen una cadena local aunque no consulten la base. La real va en `.env`.
 - Migraciones con `drizzle-kit` contra la URL **directa** de Neon (no Hyperdrive).
 - Neon free: 10 ramas por proyecto, scale-to-zero a los 5 min (no se puede desactivar). Los miembros de la organización son ilimitados en free; roles Admin / Editor / Viewer / Collaborator, y no hay restricción por rama documentada.
 - Evitar doble reserva con restricciones **a nivel base** (unique / exclusion constraint) más transacciones reales. `timestamp({ withTimezone: true })`, siempre en UTC.
 - Decisión sobre ramas: **no** se crean ramas de Neon automáticamente por PR. Si un compañero necesita una, se le da acceso para crearla cuando la necesite.
 - Proyecto Neon `fibonacci` (sa-east-1), base `fibonacci`, Postgres **17**. Ramas: `production` (la por defecto, la usa Hyperdrive en Cloudflare) y `dev` (desarrollo y pruebas).
 - **`DATABASE_URL` y la cadena local de Hyperdrive apuntan siempre a `dev`.** Las migraciones se aplican por rama: para migrar `production`, solo cuando Josué lo pida, usar `npm run db:migrate:prod`, que corre `drizzle-kit migrate` con `drizzle.prod.config.ts` (igual que `drizzle.config.ts`, pero lee la cadena **directa** de la rama `production` de la variable `PROD_DATABASE_URL`). Antes de migrar, `scripts/confirmar-prod.ts` muestra el host (nunca usuario ni contraseña) y pregunta `¿Confirmar? (s/N)`: solo `s` sigue, Enter cancela, y sin terminal interactiva se niega. Va en un archivo aparte porque probamos ponerlo dentro de `drizzle.prod.config.ts` y no sirve: `drizzle-kit` carga la configuración como CommonJS (sin `await` de nivel superior) y la alternativa síncrona con `readSync` no deja escribir en la terminal real (devuelve vacío y cancela). No chequea que la cadena sea la de `production` ni que sea la directa: eso depende de lo que haya en `PROD_DATABASE_URL`. El orden en cada cambio de esquema: `db:generate`, `db:migrate` en `dev` y probar, commitear `drizzle/`, `db:migrate:prod` y recién después desplegar el código. Los cambios tienen que ser compatibles hacia atrás (primero agregar, después borrar), porque entre la migración y el deploy corre el código viejo contra el esquema nuevo.
-- **Drizzle** (versión estable, exacta): `drizzle-orm` 0.45.4, `drizzle-kit` 0.31.11. Esquema en `workers/db/schema.ts`, configuración en `drizzle.config.ts` (carga `.env` con `process.loadEnvFile()` en un `try`, porque en CI no existe). Scripts: `db:generate` y `db:migrate`. **No usar `drizzle-kit push`.**
+- **Drizzle** (versión estable, exacta): `drizzle-orm` 0.45.4, `drizzle-kit` 0.31.11. Esquema en `workers/db/schema.ts` (reexporta las tablas de Better Auth de `auth-schema.ts`), configuración en `drizzle.config.ts` (carga `.env` con `process.loadEnvFile()` en un `try`, porque en CI no existe). Scripts: `db:generate` y `db:migrate`. **No usar `drizzle-kit push`.**
+- **Diagrama entidad-relación:** `npm run db:der` genera el DER con [Liam ERD](https://liambx.com/docs) (`@liam-hq/cli` 0.7.24, por `npx`, sin agregarlo a las dependencias) a partir de `workers/db/*.ts` y lo sirve en `http://localhost:3000` con `serve` 14.2.7. Lee los archivos de Drizzle, no la base, así que no necesita credenciales; refleja el esquema del código, que puede ir adelante de una rama sin migrar. La salida va a `.der/` (en `.gitignore`): sin `--output-dir`, el CLI crea `dist/` en la raíz. El soporte de Drizzle es experimental; verificado que lee las 6 tablas sin duplicar las que reexporta `schema.ts`. La versión web (`liambx.com/erd/p/...`) no sirve porque el repo es privado.
 - La carpeta `drizzle/` se **commitea completa, `drizzle/meta` incluida**: el `_journal.json` es la lista ordenada de migraciones que lee `migrate`, y los snapshots son lo que compara `generate`. Cada `db:generate` se commitea junto con el cambio de `schema.ts`.
 - **IDs: UUID v4** (`uuid().primaryKey().defaultRandom()` en Drizzle, `gen_random_uuid()` en SQL). Con PG17 no hay `uuidv7()` (es nativo desde PG18). Validar con `z.uuid()`. No son un reemplazo del control de acceso: **cada ruta tiene que verificar en el servidor que el recurso pertenece al usuario de la sesión**. Todas las tablas llevan `created_at` con `timestamp({ withTimezone: true })` y `defaultNow()`.
 - Está en revisión pero **no se usa** el soporte de `RETURNING OLD/NEW` de PG18 (PR #6568 de Drizzle, sin mergear y solo para PG18).
@@ -132,33 +133,33 @@ Mover las sesiones de lugar puede invalidar las sesiones existentes: verificarlo
 
 ## Auth y protección
 
-### Método de acceso y roles (por evaluar)
+### Método de acceso y roles
 
-> **Nada de esta sección está decidido.** Es una propuesta para arrancar; hay que evaluar las necesidades reales antes de implementar Better Auth.
+**Decidido: solo Google, con el plugin `admin` de Better Auth (`better-auth` 1.7.18, exacta).** Implementado en la rama `feat/auth-google`.
 
-- Usuarios: alumnos y profesores. El registro de profesores **no es prioritario**.
+- Usuarios: alumnos, profesores y administradores. Un usuario puede tener **varios roles** (por ejemplo, admin y profesor).
+- Por qué Google: no hay contraseñas que guardar ni hashear (se evita el costo de CPU de scrypt en Workers Free), no hace falta un servicio de correo para verificación y recuperación, y hay menos superficie de ataque. En contra: quedan afuera quienes no tengan cuenta de Google (por ejemplo, alumnos menores) y se depende de un tercero. Si aparecen, se suma email y contraseña (Better Auth vincula las cuentas por email verificado). Las secciones "Hashing en Workers" y el limitador por cuenta de la etapa 2 aplican **solo si se usa email y contraseña**.
+- Por qué `admin` y no `organization`: hay un solo instituto. `admin` trae el campo `role` en `user`, varios roles por usuario (guardados separados por comas: `"admin,profesor"`) y endpoints para que el admin gestione usuarios desde la app (`setRole`, `listUsers`, `banUser`, `revokeSessions`). `organization` sirve para varias organizaciones separadas; reconsiderarlo solo si cada profesor pasa a funcionar como un instituto aparte.
 
-**Método de acceso: ¿solo Google?** (propuesta, no decidido)
+**Implementación**
 
-- A favor: no hay contraseñas que guardar ni hashear (se evita el costo de CPU de scrypt en Workers Free), no hace falta un servicio de correo para verificación y recuperación, y hay menos superficie de ataque.
-- En contra: quedan afuera quienes no tengan cuenta de Google (por ejemplo, alumnos menores) y se depende de un tercero. Si aparecen, se suma email y contraseña (Better Auth vincula las cuentas por email verificado).
-- Las secciones "Hashing en Workers" y el limitador por cuenta de la etapa 2 aplican **solo si se usa email y contraseña**.
-- Si se usa Google, lo prepara Josué en Google Cloud: credenciales OAuth, pantalla de consentimiento con el dominio y los permisos básicos (`openid`, `email`, `profile`), redirect URIs de producción, `workers.dev` y `localhost`, y pasar la app de "Testing" a "Production" (en Testing solo entran 100 usuarios de prueba cargados a mano).
-
-**Roles: ¿un campo `role` o un plugin?** (por evaluar según las necesidades)
-
-- Opción simple: un campo `role` en el usuario (`alumno` | `profesor`, validado con `z.enum`, nunca un `enum` de TypeScript), por defecto `alumno`, con `input: false` para que nadie pueda ponerse `profesor` desde el cliente. En el frontend llegaría tipado con `inferAdditionalFields<typeof auth>()`. Los profesores se promoverían a mano en la base de Neon.
-- Opciones con plugin de Better Auth (por ejemplo `organization`, con roles, equipos e invitaciones, o `admin`, con roles y permisos). Hay una skill de `organization-best-practices` instalada.
-- Preguntas que definen la elección: si cada profesor tiene su propia agenda y sus propios alumnos, si hace falta dar permisos finos (quién puede ver, cancelar o editar turnos de quién), quién administra el instituto y si habrá profesores que se sumen por su cuenta.
-
-**Válido en cualquier caso**
-
-- Better Auth: configurar `advanced.database.generateId: "uuid"` y confirmar al generar el esquema que las columnas salgan como `uuid` y no `text`, para que las claves foráneas de `turnos` tengan el mismo tipo que `user.id`.
-- `auth` se crea **por request** en el Worker (la conexión sale del binding `HYPERDRIVE`), igual que el cliente `pg`. Hace falta `BETTER_AUTH_SECRET` como secreto del Worker y la `baseURL` del dominio.
+- `workers/auth.ts`: `createAuth(env, db)`, **por request** dentro de `withDb` (igual que el cliente `pg`). Adaptador de Drizzle, Google como único proveedor (`prompt: "select_account"`), `rateLimit: { enabled: true, storage: "database" }`, `generateId: "uuid"` y `cf-connecting-ip`.
+- `baseURL` dinámica con `allowedHosts`: `fibonacci.com.ar`, `fibonacci.josuehernandezrivas.workers.dev` y `localhost:5173`. La URL base sale del host del request solo si está en la lista; los orígenes de confianza (CSRF) se derivan de ahí. Un host nuevo (otro dominio, un alias de preview) hay que sumarlo acá **y** como redirect URI en Google.
+- `workers/api.ts` monta `/api/auth/*` (GET y POST) con `auth.handler(c.req.raw)`.
+- `app/lib/permisos.ts`: `ac` y `roles` (`admin`, `profesor`, `alumno`) con `createAccessControl`. Está en `app/` porque lo usan el servidor y el cliente, y el frontend no puede importar valores de `workers/`. Los permisos de turnos se suman ahí cuando exista la tabla.
+- `defaultRole: "alumno"`: todo el que entra con Google arranca como alumno. `adminRoles: ["admin"]`.
+- **Primer admin:** se pone a mano en la base, una vez, después de que la persona inicie sesión: `UPDATE "user" SET role = 'admin,profesor' WHERE email = '...';`. Desde ahí el admin promueve a los demás con `authClient.admin.setRole({ userId, role: ["profesor"] })`.
+- Esquema: `workers/db/auth-schema.ts`, generado con `npx auth@1.7.18 generate` y reexportado desde `schema.ts`. Tablas `user`, `session`, `account`, `verification` y `rate_limit`, con IDs `uuid`. Retoque a mano: los `timestamp` llevan `withTimezone: true` (reaplicarlo si se regenera). El CLI necesita un archivo que exporte `auth`: se usó uno temporal que llama a `createAuth` con un `env` de relleno y `drizzle.mock()` (debe estar dentro del proyecto para resolver los paquetes). `rate_limit` no tiene `created_at`: es de uso interno de Better Auth.
+- Cliente: `app/lib/auth-client.ts`, `createAuthClient` de `better-auth/react` con `adminClient({ ac, roles })`, que suma `role` y `banned` al tipo de la sesión. En la 1.7, `createAuthClient` **no** recibe el tipo del servidor.
+- Interfaz: `GoogleSignInButton` (`app/routes/login/components/`, solo lo usa `/login`) llama a `authClient.signIn.social({ provider: "google", callbackURL: "/home" })`. No hay pantalla de registro aparte: con Google, si la cuenta no existe, Better Auth la crea. `/home` muestra la sesión, los roles y "Cerrar sesión" (`authClient.signOut()` y después navega a `/login`). Las redirecciones del `clientLoader` solo deciden qué pantalla mostrar: la API igual verifica la sesión en cada ruta.
+- Secretos: `BETTER_AUTH_SECRET` y `GOOGLE_CLIENT_SECRET`. `GOOGLE_CLIENT_ID` no es secreto y está en `vars` de `wrangler.jsonc` (si también está en `.env`, en local gana el `.env`). En local los secretos van en `.env`; en producción, como secretos del Worker (panel o `npx wrangler secret put <NOMBRE>`, que pide el valor por consola). El `BETTER_AUTH_SECRET` local es distinto del de producción.
+- Google Cloud: cliente OAuth "Fibonacci - Better Auth", redirect URIs `http://localhost:5173/api/auth/callback/google`, `https://fibonacci.com.ar/api/auth/callback/google` y `https://fibonacci.josuehernandezrivas.workers.dev/api/auth/callback/google`. Permisos `openid`, `email`, `profile`. Mientras la pantalla de consentimiento esté en "Testing", solo entran los usuarios de prueba cargados a mano (hasta 100); pasarla a "Production" antes del lanzamiento.
+- **Previews sin login:** las Preview URLs cambian por versión y Google no acepta comodines en las redirect URIs. El login se prueba en local y en producción. Opciones para habilitarlo (preview fija u `oauth-proxy`): ver "Pasos pendientes".
+- Verificado en local contra la rama `dev`: `/api/auth/ok` responde, `get-session` devuelve `null` sin sesión, `sign-in/social` arma la URL de Google con la `redirect_uri` correcta, y se rechazan un origen ajeno (`INVALID_ORIGIN`, solo cuando el request trae cookies) y una `callbackURL` externa (`INVALID_CALLBACK_URL`). Con el build: el rate limit responde 429 al cuarto intento de ingreso, `/login` responde y `/signIn` da 404. **No verificado:** el login completo en el navegador.
 
 ### Hashing en Workers
 
-> Aplica solo si se usa email y contraseña (ver "Método de acceso y roles (por evaluar)").
+> Aplica solo si se usa email y contraseña (ver "Método de acceso y roles").
 
 - Better Auth usa por defecto scrypt (N=16384, r=16, p=1, dkLen 64). Desde la 1.6 usa `node:crypto` nativo; desde better-auth >= 1.7.11 / @better-auth/utils 0.5.0 hay una condición de export `workerd` hacia la versión nativa.
 - Medido en workerd: scrypt nativo ~100 ms de CPU, scrypt en JS (noble) ~200 ms, PBKDF2 WebCrypto 100k iteraciones ~55 ms (20k ~14 ms, 10k ~8 ms). PBKDF2 tiene tope de 100k en producción.
@@ -168,12 +169,14 @@ Mover las sesiones de lugar puede invalidar las sesiones existentes: verificarlo
 
 ### Auth, etapa 1: sin Redis
 
-- Better Auth tiene rate limit **solo en producción** (default 100 req/10 s; `/sign-in/email` 3/10 s).
+- Límites por defecto de Better Auth, por IP y ruta: 100 req/10 s en general; `/sign-in/*`, `/sign-up/*`, `/change-password` y `/change-email`, 3/10 s. Al pasarse responde 429 con `X-Retry-After`. Solo cubre `/api/auth/*`, no el resto de la API.
+- **`enabled: true` es obligatorio en Workers.** Por defecto Better Auth lo activa solo si `NODE_ENV === "production"`, y en un Worker `NODE_ENV` no existe: sin esa opción queda **apagado también en producción**. Comprobado con el build (`vite preview`): sin `enabled` los 5 pedidos a `/sign-in/social` dieron 200; con `enabled: true` dieron `200 200 200 429 429`, `get-session` siguió en 200 y a los 11 s volvió a 200. Se descartó definir `NODE_ENV=production` en `wrangler.jsonc` porque cambia el comportamiento de otras librerías. Efecto secundario: el límite también se aplica en desarrollo.
+- La tabla `rate_limit` guarda una fila por `key` (`<ip>|<ruta>`, por ejemplo `127.0.0.1|/sign-in/social`) con `count` y `last_request` (epoch en ms). Suma con un `UPDATE ... WHERE count < max` atómico y borra sola las filas vencidas.
 - Su almacenamiento por defecto es en memoria, que en Workers no se comparte entre las instancias del Worker y por eso no sirve como protección real. Usar la base de datos:
 
 ```ts
 betterAuth({
-  rateLimit: { storage: "database" },
+  rateLimit: { enabled: true, storage: "database" },
   advanced: { ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] } },
 });
 ```
@@ -193,6 +196,7 @@ betterAuth({
   session: { storeSessionInDatabase: true,
              cookieCache: { enabled: true, maxAge: 5 * 60 } },
   rateLimit: {
+    enabled: true, // en Workers no hay NODE_ENV: ver "Auth, etapa 1"
     storage: "secondary-storage",
     customRules: {
       "/get-session": false,
@@ -283,7 +287,7 @@ Frontend y API viven en el mismo repo, así que el contrato se comparte por **in
 
 **Better Auth**
 
-- Cliente con `createAuthClient<typeof auth>()` (o el plugin `inferAdditionalFields<typeof auth>()` para campos extra como `role`), que hereda los tipos de la configuración del servidor.
+- Cliente con `createAuthClient` y los plugins de cliente (`adminClient`), que suman los campos de la sesión (`role`). En la 1.7 no recibe el tipo del servidor como genérico; para campos propios en `user` se usaría `inferAdditionalFields<Auth>()` con `import type`.
 - Better Auth tiene su propio cliente tipado: **no pasa por Hono RPC**, aunque se monte dentro de Hono con `auth.handler(c.req.raw)`.
 
 **Reglas**
@@ -407,7 +411,7 @@ export default function Turnos({ loaderData, actionData }: Route.ComponentProps)
 - Para redirigir tras guardar: `return redirect("/turnos")` en el `clientAction`.
 - Los esquemas de Zod del servidor se pueden reutilizar en el `clientAction` para mostrar errores por campo antes de llamar a la API.
 - La cookie de sesión de Better Auth viaja sola porque `hc("/")` apunta al mismo origen.
-- La sesión del usuario se lee con `authClient.useSession()`.
+- La sesión del usuario se lee en el `clientLoader` con `authClient.getSession()` (y se redirige desde ahí si falta). `authClient.useSession()` queda para componentes que necesiten reaccionar a cambios de sesión sin navegar.
 - Estado de pantalla: `useState` para lo local y `useSearchParams` (la URL) para filtros que se quieran compartir o recargar.
 - Los datos del servidor **no** se copian a un store.
 
@@ -426,11 +430,14 @@ La materia de desarrollo web usa React Router como librería; usarlo como framew
 
 ## Pasos pendientes
 
-**Hecho:** bootstrap con la plantilla, `ssr: false` + prerender de `/`, Panda, SEO de la landing, Neon (proyecto, ramas `production` y `dev`), Hyperdrive sin caché, Drizzle + `pg` con `withDb`, migración inicial (`ping`), Hono en `/api/*` con Hono RPC tipado y la app conectada al dominio.
+**Hecho:** bootstrap con la plantilla, `ssr: false` + prerender de `/`, Panda, SEO de la landing, Neon (proyecto, ramas `production` y `dev`), Hyperdrive sin caché, Drizzle + `pg` con `withDb`, migración inicial (`ping`), Hono en `/api/*` con Hono RPC tipado, la app conectada al dominio y Better Auth con Google y el plugin `admin` (migrado solo en `dev`).
 
 **Los hace Claude:**
 
-- Better Auth, **una vez definidos** el método de acceso y el modelo de roles (ver "Método de acceso y roles (por evaluar)"): `generateId: "uuid"`, y sesiones y rate limit en la base de datos (etapa 1). Generar el esquema con el CLI de Better Auth y migrarlo con Drizzle.
+- Better Auth: probar el login completo en el navegador y, cuando Josué lo pida, migrar `production`.
+- **Login en las previews (después de que el login funcione en producción, en un PR aparte, no en `feat/auth-google`).** Las previews no heredan `vars` ni secretos: hay que declarar `previews.vars` y cargar secretos propios con `wrangler preview secret` / `wrangler preview base-config secret` (beta abierta). Hoy, sin `BETTER_AUTH_SECRET`, `/api/auth/*` da 500 en las previews (Better Auth falla en vez de usar un secreto por defecto). Dos opciones:
+  - **A (recomendada para empezar): una preview fija** (`wrangler preview --name dev` o rama `dev`). Registrar su redirect URI en Google (confirmar el formato de la URL al crearla), sumar el host a `allowedHosts`, `GOOGLE_CLIENT_ID` en `previews.vars`, secretos de preview con un `BETTER_AUTH_SECRET` propio y Cloudflare Access. Solo esa preview tiene login; no depende de producción.
+  - **B: plugin `oauth-proxy` de Better Auth** (login en todas las previews). La preview manda a Google con la redirect URI de producción; producción canjea el código, cifra perfil y tokens (vencen a los 60 s) y redirige a la preview, que crea usuario y sesión en su base (`dev`). Requiere el plugin **desplegado en producción** antes de usarlo, que producción confíe en las URLs de las previews y un `secret` exclusivo del proxy (no compartir `BETTER_AUTH_SECRET`). **Cuidado:** desvía cuando la URL del request difiere de `productionURL`; con `productionURL` fijo en el código también desviaría `localhost` y `workers.dev`. Activarlo solo en las previews (por ejemplo, `productionURL` desde una variable que exista solo en `previews.vars`); sin `productionURL`, con la `baseURL` dinámica, el plugin no desvía nada. Pasar a B solo si varias personas necesitan login en ramas distintas a la vez.
 - Primera ruta real de turnos: esquema, `zValidator`, `clientLoader` + `clientAction` con el cliente `hc`. Reemplazar `ping` y `/api/health`.
 - Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflare/vite-plugin` (hoy tienen `^` en `package.json`) y declarar `engines` + `.nvmrc`.
 - Reforzar con lint que `app/` no importe valores desde `workers/`.
@@ -438,7 +445,7 @@ La materia de desarrollo web usa React Router como librería; usarlo como framew
 
 **Los hace Josué:**
 
-- Evaluar y decidir el método de acceso (¿solo Google?) y el modelo de roles (¿campo o plugin?). Si es Google: credenciales OAuth, pantalla de consentimiento y redirect URIs en Google Cloud.
+- Better Auth: cargar `BETTER_AUTH_SECRET` (uno nuevo) y `GOOGLE_CLIENT_SECRET` como secretos del Worker, sumar los usuarios de prueba en la pantalla de consentimiento de Google y crear el primer admin (ver "Método de acceso y roles").
 - Neon: crear un rol dedicado `hyperdrive-user` con permisos mínimos (hoy se usa `fibonacci_owner`).
 - Decidir el nombre final del repo.
 - Cloudflare: conectar el repo a Workers Builds y limpiar las reglas de zona del intento anterior (no se confirmó que estén limpias).

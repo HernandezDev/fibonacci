@@ -8,6 +8,12 @@
 	"compatibility_date": "2026-10-23",
 	"main": "./workers/app.ts",
 	"compatibility_flags": ["nodejs_compat"],
+	// Variables públicas. Los secretos (BETTER_AUTH_SECRET, GOOGLE_CLIENT_SECRET)
+	// van en el panel o con `wrangler secret put`. Las previews no heredan `vars`.
+	"vars": {
+		// Público: viaja en la URL de inicio de sesión de Google.
+		"GOOGLE_CLIENT_ID": "957642735415-3p8vctcn8vsusuhiqqocfpqbhvn7dsvd.apps.googleusercontent.com"
+	},
 	// Hyperdrive (fibonacci-db), sin caché. El build (prerender) y Workers Builds
 	// exigen una cadena local aunque no consulten la base: `localConnectionString`
 	// es solo un relleno sin credenciales. En desarrollo, la cadena real va en
