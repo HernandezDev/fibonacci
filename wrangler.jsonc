@@ -27,7 +27,15 @@
 	],
 	// Las previews (`wrangler preview`) no heredan los bindings: usan
 	// fibonacci-db-dev, que apunta a la rama `dev` de Neon, nunca a production.
+	// Tampoco heredan `vars` ni secretos: los suyos se cargan con
+	// `wrangler preview base-config secret` (BETTER_AUTH_SECRET propio,
+	// GOOGLE_CLIENT_SECRET y OAUTH_PROXY_SECRET, el mismo que en producción).
 	"previews": {
+		"vars": {
+			"GOOGLE_CLIENT_ID": "957642735415-3p8vctcn8vsusuhiqqocfpqbhvn7dsvd.apps.googleusercontent.com",
+			// Activa el desvío del login por producción (ver workers/auth.ts).
+			"OAUTH_PROXY_PRODUCTION_URL": "https://fibonacci.com.ar"
+		},
 		"hyperdrive": [
 			{ "binding": "HYPERDRIVE", "id": "ea6dfb7cd7de4fabb822e9d421f6bb4b" }
 		]
