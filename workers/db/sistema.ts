@@ -7,8 +7,8 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-// Tabla de una sola fila para verificar la conexión de punta a punta
-// (`/api/health`). Si más adelante hacen falta UUID, usar gen_random_uuid().
+// Tabla de una sola fila que se usó para verificar la conexión de punta a punta
+// (el endpoint `/api/health` ya no existe; la tabla se conserva).
 export const ping = pgTable(
   "ping",
   {

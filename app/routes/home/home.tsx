@@ -2,8 +2,9 @@ import { SignOutIcon } from "@phosphor-icons/react/ssr";
 import { data, redirect, useNavigate } from "react-router";
 import { css } from "styled-system/css";
 
-import { Button } from "~/components/Button";
+import { Button, ButtonLink } from "~/components/Button";
 import { authClient } from "~/lib/auth-client";
+import { puede } from "~/lib/permisos";
 
 import type { Route } from "./+types/home";
 
@@ -61,6 +62,15 @@ export default function Home({ loaderData: session }: Route.ComponentProps) {
         <p className={css({ mt: "2" })}>
           Roles: {session.user.role?.split(",").join(", ") ?? "sin rol"}
         </p>
+        {/* Solo muestra el enlace: quién puede entrar lo decide la API. */}
+        {puede(session.user.role, { materia: ["listar"] }) && (
+          <ButtonLink
+            to="/materias"
+            className={css({ display: "inline-flex", mt: "8", mr: "3" })}
+          >
+            Materias
+          </ButtonLink>
+        )}
         <Button
           variant="secondary"
           onClick={signOut}

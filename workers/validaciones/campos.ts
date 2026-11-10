@@ -1,5 +1,12 @@
+import { zValidator } from "@hono/zod-validator";
 import type { InferInsertModel, Table } from "drizzle-orm";
-import type { z } from "zod";
+import type { ValidationTargets } from "hono";
+import { z } from "zod";
+import es from "zod/v4/locales/es.js";
+
+// Mensajes de error de Zod en español. Se importa solo este idioma: `z.locales`
+// arrastraría todos.
+z.config(es());
 
 // Guía para escribir los esquemas de Zod a mano contra una tabla:
 //   z.object({ ... } satisfies CamposDe<typeof turno>)
@@ -10,3 +17,16 @@ import type { z } from "zod";
 export type CamposDe<T extends Table> = {
   [K in keyof InferInsertModel<T>]?: z.ZodType<InferInsertModel<T>[K]>;
 };
+
+// Validador de las rutas: igual que `zValidator`, pero si los datos no pasan
+// responde 400 con `{ error }` (el primer problema, en español), la misma forma
+// que el resto de los errores de la API.
+export const validar = <T extends keyof ValidationTargets, S extends z.ZodType>(
+  target: T,
+  esquema: S,
+) =>
+  zValidator(target, esquema, (resultado, c) => {
+    if (!resultado.success) {
+      return c.json({ error: resultado.error.issues[0].message }, 400);
+    }
+  });
