@@ -450,6 +450,7 @@ La materia de desarrollo web usa React Router como librería; usarlo como framew
 - Primera ruta real de turnos: esquema, `zValidator`, `clientLoader` + `clientAction` con el cliente `hc`. Reemplazar `ping` y `/api/health`.
 - Fijar versiones **exactas** de `react-router`, `@react-router/dev` y `@cloudflare/vite-plugin` (hoy tienen `^` en `package.json`) y declarar `engines` + `.nvmrc`.
 - Reforzar con lint que `app/` no importe valores desde `workers/`.
+- **`typecheck` antes de cada commit, para todos:** Husky (`--save-exact --save-dev`), `"prepare": "panda codegen && husky"` (corre con `npm install` / `npm ci`, así el hook queda activo sin pasos manuales) y `.husky/pre-commit` con `npm run typecheck` (~3,7 s medido). Se prefirió a los hooks nativos (`core.hooksPath`) porque Husky no falla donde no hay `.git` (CI, Workers Builds) y anda igual en Windows. El hook se saltea con `--no-verify`: la garantía real es CI, un workflow de GitHub Actions con `npm ci` + `npm run typecheck` en cada PR (hoy no hay `.github/workflows`).
 - **Etapa 2:** Upstash, `secondaryStorage` y limitador por cuenta (ver "Plan por etapas").
 
 **Los hace Josué:**
