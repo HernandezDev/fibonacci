@@ -5,3 +5,5 @@
 export * from "./auth-schema";
 // Tablas internas de la app (por ahora, la de prueba `ping`).
 export * from "./sistema";
+// Materias, disponibilidad de los profesores y turnos.
+export * from "./turnos";

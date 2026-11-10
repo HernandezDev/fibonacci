@@ -15,6 +15,20 @@
       "when": 1794254902127,
       "tag": "0001_clean_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794286456178,
+      "tag": "0002_turnos",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794286457124,
+      "tag": "0003_turno_sin_solapamiento",
+      "breakpoints": true
     }
   ]
 }

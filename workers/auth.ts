@@ -5,8 +5,8 @@ import { admin } from "better-auth/plugins/admin";
 import { oAuthProxy } from "better-auth/plugins/oauth-proxy";
 
 import { ac, roles } from "../app/lib/permisos";
-import type { Db } from "./db/client";
-import * as schema from "./db/schema";
+import type { Db } from "./pg-client";
+import * as schema from "./db";
 
 // Login en las previews con `oauth-proxy`. Google no acepta comodines en las
 // redirect URIs, así que la preview usa la de producción: producción canjea el

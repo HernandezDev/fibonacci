@@ -2,8 +2,8 @@ import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 
 import { handleAuth } from "./auth";
-import { withDb } from "./db/client";
-import { ping } from "./db/schema";
+import { withDb } from "./pg-client";
+import { ping } from "./db";
 
 // Las rutas se encadenan: así `AppType` conserva los tipos para Hono RPC.
 const app = new Hono<{ Bindings: Env }>()

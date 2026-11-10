@@ -1,7 +1,7 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
-import * as schema from "./schema";
+import * as schema from "./db";
 
 export type Db = NodePgDatabase<typeof schema>;
 
