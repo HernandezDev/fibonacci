@@ -62,13 +62,14 @@ export default function Home({ loaderData: session }: Route.ComponentProps) {
         <p className={css({ mt: "2" })}>
           Roles: {session.user.role?.split(",").join(", ") ?? "sin rol"}
         </p>
-        {/* Solo muestra el enlace: quién puede entrar lo decide la API. */}
+        {/* Solo muestra el enlace: quién puede entrar lo decide la API. Hoy
+            `materia: listar` es lo que distingue al admin. */}
         {puede(session.user.role, { materia: ["listar"] }) && (
           <ButtonLink
-            to="/materias"
+            to="/admin"
             className={css({ display: "inline-flex", mt: "8", mr: "3" })}
           >
-            Materias
+            Administración
           </ButtonLink>
         )}
         <Button

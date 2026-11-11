@@ -34,10 +34,6 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return { creada: (await res.json()).nombre };
 }
 
-export function HydrateFallback() {
-  return <p className={css({ px: "6", py: "16" })}>Cargando…</p>;
-}
-
 export default function Materias({
   loaderData: materias,
   actionData,
@@ -51,17 +47,17 @@ export default function Materias({
   }, [actionData]);
 
   return (
-    <main className={css({ maxW: "960px", mx: "auto", px: "6", py: "16" })}>
-      <h1
-        className={css({ fontSize: "3xl", fontWeight: "bold", color: "heading" })}
+    <section>
+      <h2
+        className={css({ fontSize: "2xl", fontWeight: "bold", color: "heading" })}
       >
         Materias
-      </h1>
+      </h2>
 
       <Form
         method="post"
         ref={formRef}
-        className={css({ mt: "8", display: "flex", gap: "3", flexWrap: "wrap" })}
+        className={css({ mt: "6", display: "flex", gap: "3", flexWrap: "wrap" })}
       >
         <label htmlFor="nombre" className={css({ srOnly: true })}>
           Nombre de la materia
@@ -130,6 +126,6 @@ export default function Materias({
           ))}
         </ul>
       )}
-    </main>
+    </section>
   );
 }
