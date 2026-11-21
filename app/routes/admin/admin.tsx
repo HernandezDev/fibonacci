@@ -16,16 +16,11 @@ export function meta() {
 
 // Chequeo de UX en el cliente: si no hay sesión va a /login, y si no tiene
 // rol admin se lo manda a /home. La seguridad real va siempre en el backend.
-// `/admin` no tiene contenido propio: va a la primera sección.
-export async function clientLoader({ request }: Route.ClientLoaderArgs) {
+// `/admin` sin sección muestra solo el menú, sin ninguna pestaña marcada.
+export async function clientLoader() {
   const { data: session } = await authClient.getSession();
   if (!session) throw redirect("/login");
   if (!rolesDe(session.user.role).includes("admin")) throw redirect("/home");
-
-  const { pathname } = new URL(request.url);
-  if (pathname.replace(/\/$/, "") === "/admin") {
-    throw redirect(secciones[0].to);
-  }
   return { user: session.user };
 }
 
