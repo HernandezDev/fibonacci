@@ -129,6 +129,7 @@ export function Header() {
               <ButtonLink
                 to={RESERVAR_LINK}
                 prefetch="intent"
+                onClick={close}
                 className={mobileCta}
               >
                 Reservar clase
