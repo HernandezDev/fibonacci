@@ -4,7 +4,7 @@ import { css } from "styled-system/css";
 
 import { Button, ButtonLink } from "~/components/Button";
 import { authClient } from "~/lib/auth-client";
-import { puede } from "~/lib/permisos";
+import { rolesDe } from "~/lib/permisos";
 
 import type { Route } from "./+types/home";
 
@@ -62,13 +62,14 @@ export default function Home({ loaderData: session }: Route.ComponentProps) {
         <p className={css({ mt: "2" })}>
           Roles: {session.user.role?.split(",").join(", ") ?? "sin rol"}
         </p>
-        {/* Solo muestra el enlace: quién puede entrar lo decide la API. */}
-        {puede(session.user.role, { materia: ["listar"] }) && (
+        {/* Solo muestra el enlace: quién puede entrar lo decide la API. Misma
+            condición que el `clientLoader` de `/admin`. */}
+        {rolesDe(session.user.role).includes("admin") && (
           <ButtonLink
-            to="/materias"
+            to="/admin"
             className={css({ display: "inline-flex", mt: "8", mr: "3" })}
           >
-            Materias
+            Administración
           </ButtonLink>
         )}
         <Button

@@ -3,9 +3,6 @@ import { css, cva } from "styled-system/css";
 import { useActiveSection } from "../hooks/use-active-section";
 import { ButtonLink } from "~/components/Button";
 import { Logo } from "~/components/Logo";
-import { authClient } from "~/lib/auth-client";
-import { rolesDe } from "~/lib/permisos";
-
 import { MobileMenu } from "./MobileMenu";
 
 const LINKS = [
@@ -70,9 +67,9 @@ const desktopLink = cva({
   defaultVariants: { active: false },
 });
 
-const desktopActions = css({
+const desktopCta = css({
   display: "none",
-  md: { display: "inline-flex", alignItems: "center", gap: "3" },
+  md: { display: "inline-flex" },
 });
 
 const mobileCta = css({ display: "inline-flex", mt: "3" });
@@ -94,8 +91,6 @@ const mobileLink = cva({
 
 export function Header() {
   const activeId = useActiveSection(SECTIONS);
-  const { data: session } = authClient.useSession();
-  const esAdmin = rolesDe(session?.user?.role).includes("admin");
 
   return (
     <header className={header}>
@@ -114,16 +109,9 @@ export function Header() {
           ))}
         </nav>
 
-        <div className={desktopActions}>
-          {esAdmin && (
-            <ButtonLink to="/admin" prefetch="intent">
-              Admin
-            </ButtonLink>
-          )}
-          <ButtonLink to={RESERVAR_LINK} prefetch="intent">
-            Reservar clase
-          </ButtonLink>
-        </div>
+        <ButtonLink to={RESERVAR_LINK} prefetch="intent" className={desktopCta}>
+          Reservar clase
+        </ButtonLink>
 
         <MobileMenu>
           {(close) => (
@@ -138,16 +126,6 @@ export function Header() {
                   {label}
                 </a>
               ))}
-              {esAdmin && (
-                <ButtonLink
-                  to="/admin"
-                  prefetch="intent"
-                  onClick={close}
-                  className={mobileCta}
-                >
-                  Admin
-                </ButtonLink>
-              )}
               <ButtonLink
                 to={RESERVAR_LINK}
                 prefetch="intent"
