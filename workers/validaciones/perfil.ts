@@ -12,8 +12,14 @@ import type { CamposDe } from "./campos";
 // que llega.
 export const editarPerfil = z
   .object({
-    name: z.string().trim().min(1).max(100),
-    pais: z.string().refine(esPais, "País inválido").nullable(),
+    name: z
+      .string()
+      .trim()
+      .min(1, "Escribí tu nombre")
+      .max(100, "El nombre puede tener hasta 100 caracteres"),
+    // Sin `.nullable()`: el país se puede cambiar, pero no borrar. Solo queda
+    // en `null` si Cloudflare no lo detectó al crear la cuenta.
+    pais: z.string().refine(esPais, "País inválido"),
     formatoHora: z.enum(FORMATOS_HORA).nullable(),
   } satisfies CamposDe<typeof user>)
   .partial();

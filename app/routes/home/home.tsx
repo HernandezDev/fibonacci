@@ -55,6 +55,13 @@ export default function Home({ loaderData: session }: Route.ComponentProps) {
         <p className={css({ mt: "2" })}>
           Roles: {session.user.role?.split(",").join(", ") ?? "sin rol"}
         </p>
+        <ButtonLink
+          to="/perfil"
+          variant="secondary"
+          className={css({ display: "inline-flex", mt: "8", mr: "3" })}
+        >
+          Perfil
+        </ButtonLink>
         {/* Solo muestra el enlace: quién puede entrar lo decide la API. Misma
             condición que el `clientLoader` de `/admin`. */}
         {rolesDe(session.user.role).includes("admin") && (

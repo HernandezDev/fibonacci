@@ -11,6 +11,7 @@ export default [
   layout("routes/spa/spa.tsx", [
     route("home", "routes/home/home.tsx"),
     route("login", "routes/login/login.tsx"),
+    route("perfil", "routes/perfil/perfil.tsx"),
     route("admin", "routes/admin/admin.tsx", [
       route("materias", "routes/admin/materias/materias.tsx"),
     ]),
