@@ -13,15 +13,21 @@ import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 const catalogo = {
   ...defaultStatements,
   materia: ["listar", "crear"],
+  // Turnos libres de los profesores, para reservar.
+  disponibilidad: ["listar"],
 } as const;
 
 export const ac = createAccessControl(catalogo);
 
 // Qué parte del catálogo tiene cada rol.
 export const roles = {
-  admin: ac.newRole({ ...adminAc.statements, materia: ["listar", "crear"] }),
+  admin: ac.newRole({
+    ...adminAc.statements,
+    materia: ["listar", "crear"],
+    disponibilidad: ["listar"],
+  }),
   profesor: ac.newRole({}),
-  alumno: ac.newRole({}),
+  alumno: ac.newRole({ disponibilidad: ["listar"] }),
 };
 
 // Lo que pide una ruta, por ejemplo `{ materia: ["crear"] }`. Una acción que no

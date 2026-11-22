@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { conDatosRegionales, handleAuth } from "./auth";
 import { withDb } from "./pg-client";
 import { materias } from "./routes/materias";
+import { turnos } from "./routes/turnos";
 
 // Un sub-router por tema en `workers/routes/`, montado acá con `.route()`.
 // Todo se encadena: así `AppType` conserva los tipos para Hono RPC.
@@ -21,6 +22,7 @@ const app = new Hono<{ Bindings: Env }>()
     ),
   )
   .route("/materias", materias)
+  .route("/turnos", turnos)
   .notFound((c) => c.json({ error: "No encontrado" }, 404));
 
 // El frontend lo importa solo con `import type`.
