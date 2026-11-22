@@ -3,7 +3,7 @@ import { redirect, useNavigate } from "react-router";
 import { css } from "styled-system/css";
 
 import { Button, ButtonLink } from "~/components/Button";
-import { rolesDe } from "~/shared/permisos";
+import { puede, rolesDe } from "~/shared/permisos";
 import { cerrarSesion, sesionContext } from "~/lib/sesion";
 
 import type { Route } from "./+types/home";
@@ -62,6 +62,16 @@ export default function Home({ loaderData: session }: Route.ComponentProps) {
         >
           Perfil
         </ButtonLink>
+        {/* Solo muestra el enlace: los turnos los da la API, que verifica el
+            mismo permiso. */}
+        {puede(session.user.role, { disponibilidad: ["listar"] }) && (
+          <ButtonLink
+            to="/reservar"
+            className={css({ display: "inline-flex", mt: "8", mr: "3" })}
+          >
+            Reservar
+          </ButtonLink>
+        )}
         {/* Solo muestra el enlace: quién puede entrar lo decide la API. Misma
             condición que el `clientLoader` de `/admin`. */}
         {rolesDe(session.user.role).includes("admin") && (

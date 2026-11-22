@@ -35,7 +35,7 @@ const card = cva({
 type CardProps = Omit<ComponentProps<"article">, "className" | "title"> &
   RecipeVariantProps<typeof card> & {
     className?: string;
-    // Materia (o profesor, si no hay materia elegida).
+    // La materia.
     titulo: string;
     // Profesor (para el alumno) o alumno (para el profesor).
     subtitulo?: string;
