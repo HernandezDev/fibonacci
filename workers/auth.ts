@@ -3,11 +3,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins/admin";
 import { oAuthProxy } from "better-auth/plugins/oauth-proxy";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 
 import { ac, roles } from "../app/shared/permisos";
-import { esPais, FORMATOS_HORA } from "../app/shared/regional";
+import { esPais, esZonaHoraria, FORMATOS_HORA } from "../app/shared/regional";
 import type { Db } from "./pg-client";
 import * as schema from "./db";
 import { editarPerfil } from "./validaciones/perfil";
@@ -69,15 +69,22 @@ export function destinoPermitido(destino: URL, origen: URL) {
   );
 }
 
-// País del request según Cloudflare, para `/api/auth/*`: queda en `c.var.pais`
-// solo si es un país válido. "XX" (Cloudflare no sabe), "T1" (Tor), vacío o
-// cualquier otra cosa = `undefined`. En local lo inventa Miniflare.
-export const conPais = createMiddleware<{
+// País y zona horaria del request según Cloudflare, ya validados. Solo los
+// usa `/api/auth/*`, que es donde se crean usuarios y sesiones.
+type DatosRegionales = { pais?: string; zonaHoraria?: string };
+
+// Para `/api/auth/*`: deja en `c.var` el país y la zona horaria de Cloudflare,
+// cada uno solo si es válido. País "XX" (Cloudflare no sabe), "T1" (Tor), vacío
+// o cualquier otra cosa = `undefined`; lo mismo una zona que `Intl` no conoce o
+// que no viene. En local los inventa Miniflare (o no vienen).
+export const conDatosRegionales = createMiddleware<{
   Bindings: Env;
-  Variables: { pais?: string };
+  Variables: DatosRegionales;
 }>(async (c, next) => {
   const pais = c.req.raw.cf?.country;
+  const zonaHoraria = c.req.raw.cf?.timezone;
   c.set("pais", esPais(pais) ? pais : undefined);
+  c.set("zonaHoraria", esZonaHoraria(zonaHoraria) ? zonaHoraria : undefined);
   await next();
 });
 
@@ -87,9 +94,9 @@ export async function handleAuth(
   env: Env & ProxyEnv,
   db: Db,
   request: Request,
-  pais?: string,
+  regionales: DatosRegionales = {},
 ) {
-  const response = await createAuth(env, db, pais).handler(request);
+  const response = await createAuth(env, db, regionales).handler(request);
   const location = response.headers.get("location");
   if (!location) return response;
 
@@ -106,9 +113,13 @@ export async function handleAuth(
 export type Auth = ReturnType<typeof createAuth>;
 
 // Se crea por request, igual que el cliente `pg`: la conexión sale de `withDb`.
-// `pais` es el de Cloudflare (`conPais`), ya validado; solo lo pasa
-// `/api/auth/*`, que es donde se crean usuarios y sesiones.
-export function createAuth(env: Env & ProxyEnv, db: Db, pais?: string) {
+// `regionales` son el país y la zona de Cloudflare (`conDatosRegionales`), ya
+// validados; solo los pasa `/api/auth/*`.
+export function createAuth(
+  env: Env & ProxyEnv,
+  db: Db,
+  { pais, zonaHoraria }: DatosRegionales = {},
+) {
   const proxySecret = env.OAUTH_PROXY_SECRET;
   const productionURL = env.OAUTH_PROXY_PRODUCTION_URL;
 
@@ -138,15 +149,26 @@ export function createAuth(env: Env & ProxyEnv, db: Db, pais?: string) {
           required: false,
           input: true,
         },
+        // Zona horaria IANA ("America/Argentina/Buenos_Aires"). Arranca con la
+        // de Cloudflare y el usuario la cambia en el Perfil. `null` = sin dato.
+        zonaHoraria: { type: "string", required: false, input: true },
       },
     },
     databaseHooks: {
       user: {
-        // Cuenta nueva: el país de Cloudflare, solo si es válido. Si no, queda
-        // en `null`: no se guardan datos a medias.
+        // Cuenta nueva: el país y la zona de Cloudflare, cada uno solo si es
+        // válido. Lo que falte queda en `null` y se completa al iniciar sesión.
         create: {
-          before: async (usuario) =>
-            pais ? { data: { ...usuario, pais } } : undefined,
+          before: async (usuario) => {
+            if (!pais && !zonaHoraria) return;
+            return {
+              data: {
+                ...usuario,
+                ...(pais && { pais }),
+                ...(zonaHoraria && { zonaHoraria }),
+              },
+            };
+          },
         },
         // Cualquier cambio del usuario pasa por acá, venga del Perfil o de otro
         // endpoint de Better Auth. Se valida solo lo que llega.
@@ -163,19 +185,23 @@ export function createAuth(env: Env & ProxyEnv, db: Db, pais?: string) {
         },
       },
       session: {
-        // En cada inicio de sesión: si el usuario todavía no tiene país y
-        // ahora hay uno válido, se guarda. Si ya tiene, no se toca nunca (el
-        // `isNull` lo asegura en la misma consulta).
+        // En cada inicio de sesión: completa el país y la zona que falten con
+        // los de Cloudflare, en una sola consulta. Un valor ya guardado no se
+        // pisa nunca: `COALESCE` conserva el actual y, si no falta ninguno, el
+        // `WHERE` no toca la fila.
         create: {
           before: async (sesion) => {
-            if (!pais) return;
+            if (!pais && !zonaHoraria) return;
             await db
               .update(schema.user)
-              .set({ pais })
+              .set({
+                pais: sql`coalesce(${schema.user.pais}, ${pais ?? null})`,
+                zonaHoraria: sql`coalesce(${schema.user.zonaHoraria}, ${zonaHoraria ?? null})`,
+              })
               .where(
                 and(
                   eq(schema.user.id, sesion.userId),
-                  isNull(schema.user.pais),
+                  or(isNull(schema.user.pais), isNull(schema.user.zonaHoraria)),
                 ),
               );
           },

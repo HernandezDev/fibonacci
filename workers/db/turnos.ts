@@ -74,8 +74,9 @@ export const materiaReservable = and(
 
 // Horario semanal del profesor: cada regla es un turno reservable que se repite
 // todas las semanas (1 = lunes ... 7 = domingo, como `isodow` de Postgres).
-// Las horas son de Argentina (America/Argentina/Buenos_Aires), no UTC: al
-// reservar se convierten a `timestamptz` para `turno`.
+// Las horas son de la zona horaria de su profesor (`user.zona_horaria`); al
+// calcular turnos se convierten con `AT TIME ZONE` usando esa columna. Un
+// profesor sin zona no ofrece turnos.
 export const reglaDisponibilidad = pgTable(
   "regla_disponibilidad",
   {

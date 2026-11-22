@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { esPais, FORMATOS_HORA } from "../../app/shared/regional";
+import {
+  esPais,
+  esZonaHoraria,
+  FORMATOS_HORA,
+} from "../../app/shared/regional";
 // La tabla solo se usa como tipo (`satisfies CamposDe<typeof user>`).
 import type { user } from "../db";
 import type { CamposDe } from "./campos";
@@ -21,5 +25,7 @@ export const editarPerfil = z
     // en `null` si Cloudflare no lo detectó al crear la cuenta.
     pais: z.string().refine(esPais, "País inválido"),
     formatoHora: z.enum(FORMATOS_HORA).nullable(),
+    // Como el país: se puede cambiar, pero no borrar.
+    zonaHoraria: z.string().refine(esZonaHoraria, "Zona horaria inválida"),
   } satisfies CamposDe<typeof user>)
   .partial();

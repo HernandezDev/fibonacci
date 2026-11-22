@@ -42,8 +42,12 @@ const MATERIAS = [
   "Probabilidad y Estadística",
 ];
 
-// Días: 1 = lunes ... 7 = domingo. Horas de Argentina, `HH:MM`. Cada regla es
-// un turno reservable, así que dentro de un mismo profesor no se pisan.
+// Zona horaria de todos los profesores de prueba.
+const ZONA_PROFESORES = "America/Argentina/Buenos_Aires";
+
+// Días: 1 = lunes ... 7 = domingo. Horas en la zona del profesor
+// (`ZONA_PROFESORES`), `HH:MM`. Cada regla es un turno reservable, así que
+// dentro de un mismo profesor no se pisan.
 type Regla = { dia: number; inicio: string; fin: string };
 
 // Los emails usan `.invalid` (RFC 2606): ese dominio no existe, así que nadie
@@ -210,6 +214,8 @@ async function cargar() {
       .where(inArray(materia.nombre, MATERIAS));
     const idMateria = new Map(materias.map((m) => [m.nombre, m.id]));
 
+    // Las horas de sus reglas son de esta zona. Si el profesor ya existe, solo
+    // se le actualiza la zona: un profesor sin zona no ofrece turnos.
     await tx
       .insert(user)
       .values(
@@ -217,9 +223,13 @@ async function cargar() {
           name: p.nombre,
           email: p.email,
           role: "profesor",
+          zonaHoraria: ZONA_PROFESORES,
         })),
       )
-      .onConflictDoNothing({ target: user.email });
+      .onConflictDoUpdate({
+        target: user.email,
+        set: { zonaHoraria: ZONA_PROFESORES },
+      });
     const profesores = await tx
       .select({ id: user.id, email: user.email })
       .from(user)
