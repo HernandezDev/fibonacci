@@ -6,8 +6,8 @@ import { oAuthProxy } from "better-auth/plugins/oauth-proxy";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 
-import { ac, roles } from "../app/lib/permisos";
-import { esPais, FORMATOS_HORA } from "../app/lib/regional";
+import { ac, roles } from "../app/shared/permisos";
+import { esPais, FORMATOS_HORA } from "../app/shared/regional";
 import type { Db } from "./pg-client";
 import * as schema from "./db";
 import { editarPerfil } from "./validaciones/perfil";
@@ -132,7 +132,7 @@ export function createAuth(env: Env & ProxyEnv, db: Db, pais?: string) {
       additionalFields: {
         // ISO 3166-1 alfa-2 en mayúsculas ("AR"). `null` = sin dato.
         pais: { type: "string", required: false, input: true },
-        // `null` = automático (ver `app/lib/formato.tsx`).
+        // `null` = automático (ver `app/lib/locale.tsx`).
         formatoHora: {
           type: [...FORMATOS_HORA],
           required: false,

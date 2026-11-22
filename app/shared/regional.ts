@@ -1,6 +1,7 @@
 // País y formato de hora del usuario. Lo usan el Worker (validación y país de
-// Cloudflare) y el cliente (Perfil y `formato.tsx`), por eso está en `app/`: el
-// frontend no puede importar valores de `workers/`.
+// Cloudflare) y el cliente (Perfil y `locale.tsx`), por eso está en
+// `app/shared/`: el frontend no puede importar valores de `workers/`, y
+// `workers/` solo importa de acá.
 
 // Formatos de hora que se pueden elegir en el Perfil. `null` = automático.
 export const FORMATOS_HORA = ["h12", "h23"] as const;

@@ -3,7 +3,7 @@ import { css } from "styled-system/css";
 
 import { Button } from "~/components/Button";
 import { authClient } from "~/lib/auth-client";
-import { esFormatoHora, nombreDePais } from "~/lib/regional";
+import { esFormatoHora, nombreDePais } from "~/shared/regional";
 import { olvidarSesion, sesionContext } from "~/lib/sesion";
 
 import { Avatar } from "./components/Avatar";

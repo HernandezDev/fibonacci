@@ -3,7 +3,8 @@ import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 
 // Roles del plugin `admin` de Better Auth. Los usan el servidor
 // (`workers/auth.ts`) y el cliente (`app/lib/auth-client.ts`), por eso viven en
-// `app/`: el frontend no puede importar valores de `workers/`.
+// `app/shared/`: el frontend no puede importar valores de `workers/`, y
+// `workers/` solo importa de acá.
 // Un usuario puede tener varios roles: se guardan separados por comas en
 // `user.role` (por ejemplo "admin,profesor").
 

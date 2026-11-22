@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
-import { esFormatoHora, type FormatoHora } from "./regional";
+import { esFormatoHora, type FormatoHora } from "~/shared/regional";
 
 // Cómo se muestran fechas y horas. El idioma es siempre español: el locale es
 // `es-[PAÍS]`, y del navegador solo se toma el formato de hora (y la zona
