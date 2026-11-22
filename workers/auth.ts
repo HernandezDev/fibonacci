@@ -3,7 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins/admin";
 import { oAuthProxy } from "better-auth/plugins/oauth-proxy";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { createMiddleware } from "hono/factory";
 
 import { ac, roles } from "../app/lib/permisos";
@@ -20,6 +20,21 @@ import { editarPerfil } from "./validaciones/perfil";
 // - OAUTH_PROXY_PRODUCTION_URL (`previews.vars`): solo en las previews. Es lo
 //   que activa el desvío; sin ella el plugin solo atiende la vuelta.
 // No están en el `.env`, por eso no aparecen en el `Env` generado.
+// Campo `picture` del `idToken` de Google, o `undefined` si no hay o no es una
+// URL https. No se verifica la firma: el token lo guardó Better Auth al
+// canjearlo con Google (o llegó cifrado por el proxy), no viene del navegador.
+function fotoDelIdToken(idToken: string): string | undefined {
+  try {
+    const base64 = idToken.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { picture } = JSON.parse(atob(base64));
+    return typeof picture === "string" && picture.startsWith("https://")
+      ? picture
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 type ProxyEnv = {
   OAUTH_PROXY_SECRET?: string;
   OAUTH_PROXY_PRODUCTION_URL?: string;
@@ -158,7 +173,33 @@ export function createAuth(env: Env & ProxyEnv, db: Db, pais?: string) {
               .update(schema.user)
               .set({ pais })
               .where(
-                and(eq(schema.user.id, sesion.userId), isNull(schema.user.pais)),
+                and(
+                  eq(schema.user.id, sesion.userId),
+                  isNull(schema.user.pais),
+                ),
+              );
+          },
+        },
+      },
+      account: {
+        // En cada inicio de sesión Better Auth guarda el `idToken` nuevo de
+        // Google: de ahí sale la foto actual. Se actualiza solo `image`; el
+        // nombre lo decide el usuario en el Perfil, por eso no se usa
+        // `overrideUserInfoOnSignIn` (pisaría también `name`). Solo escribe si
+        // la foto cambió.
+        update: {
+          after: async (cuenta) => {
+            if (cuenta.providerId !== "google" || !cuenta.idToken) return;
+            const foto = fotoDelIdToken(cuenta.idToken);
+            if (!foto) return;
+            await db
+              .update(schema.user)
+              .set({ image: foto })
+              .where(
+                and(
+                  eq(schema.user.id, cuenta.userId),
+                  sql`${schema.user.image} is distinct from ${foto}`,
+                ),
               );
           },
         },

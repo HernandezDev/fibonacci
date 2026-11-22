@@ -6,6 +6,7 @@ import { authClient } from "~/lib/auth-client";
 import { esFormatoHora, nombreDePais } from "~/lib/regional";
 import { olvidarSesion, sesionContext } from "~/lib/sesion";
 
+import { Avatar } from "./components/Avatar";
 import type { Route } from "./+types/perfil";
 
 export function meta() {
@@ -35,10 +36,11 @@ const FORMATOS = [
 export async function clientLoader({ context }: Route.ClientLoaderArgs) {
   const sesion = context.get(sesionContext);
   if (!sesion) throw redirect("/login");
-  const { name, email, pais, formatoHora } = sesion.user;
+  const { name, email, image, pais, formatoHora } = sesion.user;
   return {
     name,
     email,
+    image: image ?? null,
     pais: pais ?? null,
     formatoHora: esFormatoHora(formatoHora) ? formatoHora : null,
   };
@@ -103,7 +105,17 @@ export default function Perfil({
         Perfil
       </h1>
       {/* El email y la foto vienen de Google y no se editan. */}
-      <p className={css({ mt: "3" })}>{usuario.email}</p>
+      <div
+        className={css({
+          mt: "4",
+          display: "flex",
+          gap: "4",
+          alignItems: "center",
+        })}
+      >
+        <Avatar src={usuario.image} />
+        <p>{usuario.email}</p>
+      </div>
 
       <Form
         method="post"
