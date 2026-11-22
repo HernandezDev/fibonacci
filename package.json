@@ -13,6 +13,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed:prod": "tsx scripts/seed.ts --prod",
+    "db:seed:limpiar": "tsx scripts/seed.ts --limpiar",
+    "db:seed:limpiar:prod": "tsx scripts/seed.ts --limpiar --prod",
     "db:migrate:prod": "node --env-file-if-exists=.env scripts/confirmar-prod.ts && drizzle-kit migrate --config=drizzle.prod.config.ts",
     "db:der": "npx --yes @liam-hq/cli@0.7.24 erd build --format drizzle --input \"workers/db/*.ts\" --output-dir .der && npx --yes serve@14.2.7 .der",
     "postinstall": "wrangler types"
@@ -43,6 +47,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "drizzle-kit": "0.31.11",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
     "wrangler": "^4.155.0"
