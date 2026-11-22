@@ -62,6 +62,24 @@ export default defineConfig({
           },
         },
       },
+      // Tipografía reutilizable: `css({ textStyle: "titulo" })`. Solo tamaño,
+      // peso y altura de línea; el color va aparte, con los roles semánticos.
+      textStyles: {
+        titulo: { value: { fontSize: 'lg', fontWeight: 'semibold', lineHeight: '1.4' } },
+        detalle: { value: { fontSize: 'sm', lineHeight: '1.5' } },
+      },
+      // Superficies reutilizables (cards, casillas del calendario, el panel del
+      // Drawer): `css({ layerStyle: "superficie.elevada" })`.
+      layerStyles: {
+        superficie: {
+          elevada: {
+            value: { bg: 'white', borderWidth: '1px', borderColor: 'border', boxShadow: 'sm' },
+          },
+          apagada: {
+            value: { bg: 'bg.muted', borderWidth: '1px', borderColor: 'transparent' },
+          },
+        },
+      },
     },
   },
   globalCss: {
