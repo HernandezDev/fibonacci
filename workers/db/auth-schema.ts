@@ -30,6 +30,12 @@ export const user = pgTable("user", {
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires", { withTimezone: true }),
+  // Campos propios (`user.additionalFields` en `workers/auth.ts`), agregados a
+  // mano: si se regenera este archivo, el CLI los vuelve a crear desde ahí.
+  // País (ISO 3166-1 alfa-2, "AR") y formato de hora ("h12" o "h23"). `null`
+  // = sin dato / automático.
+  pais: text("pais"),
+  formatoHora: text("formato_hora"),
 });
 
 export const session = pgTable(

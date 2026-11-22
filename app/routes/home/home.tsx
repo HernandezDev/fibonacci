@@ -1,10 +1,10 @@
 import { SignOutIcon } from "@phosphor-icons/react/ssr";
-import { data, redirect, useNavigate } from "react-router";
+import { redirect, useNavigate } from "react-router";
 import { css } from "styled-system/css";
 
 import { Button, ButtonLink } from "~/components/Button";
-import { authClient } from "~/lib/auth-client";
 import { rolesDe } from "~/lib/permisos";
+import { cerrarSesion, sesionContext } from "~/lib/sesion";
 
 import type { Route } from "./+types/home";
 
@@ -12,26 +12,19 @@ export function meta() {
   return [{ title: "Inicio — Instituto Fibonacci" }];
 }
 
-// Sin sesión, a `/login`. Esto solo decide qué pantalla mostrar: la API
-// igual tiene que verificar la sesión en cada ruta.
-export async function clientLoader() {
-  const res = await authClient.getSession();
-  if (res.error) {
-    throw data("No se pudo cargar la sesión", { status: res.error.status });
-  }
-  if (!res.data) throw redirect("/login");
-  return res.data;
-}
-
-export function HydrateFallback() {
-  return <p className={css({ px: "6", py: "16" })}>Cargando…</p>;
+// Sin sesión, a `/login`. La sesión la cargó el layout `spa.tsx`. Esto solo
+// decide qué pantalla mostrar: la API igual verifica la sesión en cada ruta.
+export async function clientLoader({ context }: Route.ClientLoaderArgs) {
+  const sesion = context.get(sesionContext);
+  if (!sesion) throw redirect("/login");
+  return sesion;
 }
 
 export default function Home({ loaderData: session }: Route.ComponentProps) {
   const navigate = useNavigate();
 
   async function signOut() {
-    await authClient.signOut();
+    await cerrarSesion();
     navigate("/login");
   }
 
@@ -62,6 +55,13 @@ export default function Home({ loaderData: session }: Route.ComponentProps) {
         <p className={css({ mt: "2" })}>
           Roles: {session.user.role?.split(",").join(", ") ?? "sin rol"}
         </p>
+        <ButtonLink
+          to="/perfil"
+          variant="secondary"
+          className={css({ display: "inline-flex", mt: "8", mr: "3" })}
+        >
+          Perfil
+        </ButtonLink>
         {/* Solo muestra el enlace: quién puede entrar lo decide la API. Misma
             condición que el `clientLoader` de `/admin`. */}
         {rolesDe(session.user.role).includes("admin") && (

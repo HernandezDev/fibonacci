@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-import { handleAuth } from "./auth";
+import { conPais, handleAuth } from "./auth";
 import { withDb } from "./pg-client";
 import { materias } from "./routes/materias";
 
@@ -10,8 +10,11 @@ const app = new Hono<{ Bindings: Env }>()
   .basePath("/api")
   // Better Auth atiende todo `/api/auth/*`. Tiene su propio cliente tipado
   // (`app/lib/auth-client.ts`), no pasa por Hono RPC.
-  .on(["GET", "POST"], "/auth/*", (c) =>
-    withDb(c.env, c.executionCtx, (db) => handleAuth(c.env, db, c.req.raw)),
+  // `conPais` deja el país de Cloudflare para las cuentas y sesiones nuevas.
+  .on(["GET", "POST"], "/auth/*", conPais, (c) =>
+    withDb(c.env, c.executionCtx, (db) =>
+      handleAuth(c.env, db, c.req.raw, c.var.pais),
+    ),
   )
   .route("/materias", materias)
   .notFound((c) => c.json({ error: "No encontrado" }, 404));

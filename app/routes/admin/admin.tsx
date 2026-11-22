@@ -1,8 +1,8 @@
 import { Link, NavLink, Outlet, redirect } from "react-router";
 import { css } from "styled-system/css";
 
-import { authClient } from "~/lib/auth-client";
 import { rolesDe } from "~/lib/permisos";
+import { sesionContext } from "~/lib/sesion";
 
 import type { Route } from "./+types/admin";
 
@@ -17,15 +17,12 @@ export function meta() {
 // Chequeo de UX en el cliente: si no hay sesión va a /login, y si no tiene
 // rol admin se lo manda a /home. La seguridad real va siempre en el backend.
 // `/admin` sin sección muestra solo el menú, sin ninguna pestaña marcada.
-export async function clientLoader() {
-  const { data: session } = await authClient.getSession();
+// La sesión la cargó el layout `spa.tsx`.
+export async function clientLoader({ context }: Route.ClientLoaderArgs) {
+  const session = context.get(sesionContext);
   if (!session) throw redirect("/login");
   if (!rolesDe(session.user.role).includes("admin")) throw redirect("/home");
   return { user: session.user };
-}
-
-export function HydrateFallback() {
-  return <p className={css({ px: "6", py: "16" })}>Cargando…</p>;
 }
 
 export default function Admin({ loaderData }: Route.ComponentProps) {
