@@ -51,3 +51,16 @@ export function nombreDePais(codigo: string): string | undefined {
 export function esPais(codigo: unknown): codigo is string {
   return typeof codigo === "string" && nombreDePais(codigo) !== undefined;
 }
+
+// Zona horaria IANA ("America/Argentina/Buenos_Aires"): cualquier nombre que
+// `Intl` reconozca. Está en `app/shared/` porque la usa el Worker (la de
+// Cloudflare al crear la cuenta) y después la va a usar el Perfil.
+export function esZonaHoraria(valor: unknown): valor is string {
+  if (typeof valor !== "string" || valor === "") return false;
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: valor });
+    return true;
+  } catch {
+    return false;
+  }
+}

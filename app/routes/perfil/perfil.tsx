@@ -24,6 +24,34 @@ const PAISES = [...LETRAS]
   })
   .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
+// Zonas horarias que conoce el navegador, con su diferencia con UTC de hoy
+// ("GMT-03:00"). Se arma una vez, al cargar la vista. Usa los nombres de CLDR,
+// que no siempre son los de Cloudflare ("America/Buenos_Aires" y no
+// "America/Argentina/Buenos_Aires"): la del usuario se suma si no está.
+const AHORA = new Date();
+const ZONAS = Intl.supportedValuesOf("timeZone");
+
+function etiquetaDeZona(zona: string) {
+  const diferencia = new Intl.DateTimeFormat("es", {
+    timeZone: zona,
+    timeZoneName: "longOffset",
+  })
+    .formatToParts(AHORA)
+    .find((p) => p.type === "timeZoneName")?.value;
+  return `(${diferencia}) ${zona.replaceAll("_", " ")}`;
+}
+
+const ETIQUETAS_ZONAS = new Map(ZONAS.map((z) => [z, etiquetaDeZona(z)]));
+
+function zonasPara(actual: string | null) {
+  if (!actual || ETIQUETAS_ZONAS.has(actual)) return ETIQUETAS_ZONAS;
+  return new Map(
+    [...ETIQUETAS_ZONAS, [actual, etiquetaDeZona(actual)] as const].sort(
+      ([a], [b]) => a.localeCompare(b),
+    ),
+  );
+}
+
 // "auto" en el formulario = `null` en la base.
 const FORMATOS = [
   { valor: "auto", etiqueta: "Automático" },
@@ -36,13 +64,14 @@ const FORMATOS = [
 export async function clientLoader({ context }: Route.ClientLoaderArgs) {
   const sesion = context.get(sesionContext);
   if (!sesion) throw redirect("/login");
-  const { name, email, image, pais, formatoHora } = sesion.user;
+  const { name, email, image, pais, formatoHora, zonaHoraria } = sesion.user;
   return {
     name,
     email,
     image: image ?? null,
     pais: pais ?? null,
     formatoHora: esFormatoHora(formatoHora) ? formatoHora : null,
+    zonaHoraria: zonaHoraria ?? null,
   };
 }
 
@@ -53,6 +82,7 @@ export async function clientLoader({ context }: Route.ClientLoaderArgs) {
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const form = await request.formData();
   const pais = String(form.get("pais") ?? "");
+  const zonaHoraria = String(form.get("zonaHoraria") ?? "");
   const formatoHora = String(form.get("formatoHora") ?? "auto");
 
   const res = await authClient.updateUser({
@@ -61,6 +91,8 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
     pais: pais === "" ? undefined : pais,
     // "auto" (o cualquier otro valor) = `null`, automático.
     formatoHora: esFormatoHora(formatoHora) ? formatoHora : null,
+    // Igual que el país: sin zona elegida no se manda.
+    zonaHoraria: zonaHoraria === "" ? undefined : zonaHoraria,
   });
   if (res.error) {
     return {
@@ -149,6 +181,27 @@ export default function Perfil({
             {PAISES.map((p) => (
               <option key={p.codigo} value={p.codigo}>
                 {p.nombre}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label>
+          Zona horaria
+          <select
+            name="zonaHoraria"
+            defaultValue={usuario.zonaHoraria ?? ""}
+            className={campo}
+          >
+            {/* Como el país: solo si todavía no tiene zona. */}
+            {!usuario.zonaHoraria && (
+              <option value="" disabled>
+                Elegí tu zona horaria
+              </option>
+            )}
+            {[...zonasPara(usuario.zonaHoraria)].map(([zona, etiqueta]) => (
+              <option key={zona} value={zona}>
+                {etiqueta}
               </option>
             ))}
           </select>
