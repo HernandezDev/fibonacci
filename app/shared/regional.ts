@@ -12,9 +12,26 @@ export function esFormatoHora(valor: unknown): valor is FormatoHora {
 }
 
 // Códigos que `Intl.DisplayNames` reconoce pero no son países: agrupaciones
-// (EU, EZ, QO, UN), pseudolocales (XA, XB) y "región desconocida" (ZZ). Los de
-// Cloudflare sin país ("XX", "T1" de Tor) ya no tienen nombre o no son letras.
-const NO_SON_PAISES = new Set(["EU", "EZ", "QO", "UN", "XA", "XB", "ZZ"]);
+// (EU, EZ, QO, UN), pseudolocales (XA, XB), "región desconocida" (ZZ) y los
+// territorios que ISO 3166 tiene como reservas excepcionales (AC, CP, CQ, DG,
+// EA, IC, TA). Los de Cloudflare sin país ("XX", "T1" de Tor) ya no tienen
+// nombre o no son letras.
+const NO_SON_PAISES = new Set([
+  "EU",
+  "EZ",
+  "QO",
+  "UN",
+  "XA",
+  "XB",
+  "ZZ",
+  "AC",
+  "CP",
+  "CQ",
+  "DG",
+  "EA",
+  "IC",
+  "TA",
+]);
 
 const nombres = new Intl.DisplayNames(["es"], {
   type: "region",
@@ -25,6 +42,9 @@ const nombres = new Intl.DisplayNames(["es"], {
 // "Argentina"), o `undefined` si no es un país.
 export function nombreDePais(codigo: string): string | undefined {
   if (!/^[A-Z]{2}$/.test(codigo) || NO_SON_PAISES.has(codigo)) return undefined;
+  // Códigos viejos o alias ("SU", "UK", "YU"…): Intl los normaliza al actual,
+  // y DisplayNames les da el mismo nombre que al país vigente.
+  if (new Intl.Locale(`und-${codigo}`).region !== codigo) return undefined;
   return nombres.of(codigo);
 }
 
