@@ -1,6 +1,5 @@
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
-import { authClient } from "./auth-client";
 import { esFormatoHora, type FormatoHora } from "./regional";
 
 // Cómo se muestran fechas y horas. El idioma es siempre español: el locale es
@@ -15,8 +14,9 @@ import { esFormatoHora, type FormatoHora } from "./regional";
 const PAISES_FORZAR_24_HORAS = new Set(["AR"]);
 
 export function formatoHoraDelNavegador() {
-  return new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions()
-    .hourCycle;
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+  }).resolvedOptions().hourCycle;
 }
 
 export function formatoHoraPorDefecto(pais: string | null) {
@@ -34,25 +34,33 @@ export function construirLocale(
   });
 }
 
-type Formato = {
+// Lo que entrega `useLocale()`: el locale y los formateadores ya armados con él.
+type Locale = {
   locale: Intl.Locale;
   hora: Intl.DateTimeFormat;
   fecha: Intl.DateTimeFormat;
 };
 
-const FormatoContext = createContext<Formato | null>(null);
+const LocaleContext = createContext<Locale | null>(null);
 
-// Va en el layout de las rutas SPA (`app/routes/spa/spa.tsx`), no en la
-// landing: `useSession` llama a `/api/auth/get-session`. Sigue la sesión, así
-// que toma solo los cambios del Perfil. Sin sesión, usa el navegador.
+type Preferencias = { pais?: string | null; formatoHora?: string | null };
+
+// Lo monta el layout de las rutas SPA (`app/routes/spa/spa.tsx`) con el usuario
+// de la sesión; sin sesión (`undefined`), usa el navegador. Cuando el Perfil
+// guarda, React Router vuelve a correr los loaders y llega el usuario nuevo.
 // Sin `timeZone`: siempre se usa la zona del navegador.
-export function FormatoProvider({ children }: { children: ReactNode }) {
-  const usuario = authClient.useSession().data?.user;
+export function LocaleProvider({
+  usuario,
+  children,
+}: {
+  usuario: Preferencias | undefined;
+  children: ReactNode;
+}) {
   const pais = usuario?.pais ?? null;
   const elegido = usuario?.formatoHora;
   const formatoHora = esFormatoHora(elegido) ? elegido : null;
 
-  const formato = useMemo(() => {
+  const valor = useMemo(() => {
     const locale = construirLocale(pais, formatoHora);
     return {
       locale,
@@ -69,14 +77,14 @@ export function FormatoProvider({ children }: { children: ReactNode }) {
   }, [pais, formatoHora]);
 
   return (
-    <FormatoContext.Provider value={formato}>{children}</FormatoContext.Provider>
+    <LocaleContext.Provider value={valor}>{children}</LocaleContext.Provider>
   );
 }
 
-export function useFormato() {
-  const formato = useContext(FormatoContext);
-  if (!formato) {
-    throw new Error("useFormato() tiene que usarse dentro de <FormatoProvider>.");
+export function useLocale() {
+  const valor = useContext(LocaleContext);
+  if (!valor) {
+    throw new Error("useLocale() tiene que usarse dentro de <LocaleProvider>.");
   }
-  return formato;
+  return valor;
 }

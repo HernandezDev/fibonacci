@@ -1,20 +1,20 @@
 import { redirect } from "react-router";
 import { css } from "styled-system/css";
 
-import { authClient } from "~/lib/auth-client";
-
-import { GoogleSignInButton } from "./components/GoogleSignInButton";
 import { rolesDe } from "~/lib/permisos";
+import { sesionContext } from "~/lib/sesion";
+
+import type { Route } from "./+types/login";
+import { GoogleSignInButton } from "./components/GoogleSignInButton";
 
 export function meta() {
   return [{ title: "Iniciar sesión — Instituto Fibonacci" }];
 }
 
-// Con sesión iniciada no hay nada que hacer acá: se va a `/home`. Si falla la
-// consulta de la sesión, se muestra el login igual.
-// Con sesión iniciada, si es admin va a /admin; si no, a /home.
-export async function clientLoader() {
-  const { data: session } = await authClient.getSession();
+// Con sesión iniciada no hay nada que hacer acá: si es admin va a /admin; si
+// no, a /home. La sesión la cargó el layout `spa.tsx`.
+export async function clientLoader({ context }: Route.ClientLoaderArgs) {
+  const session = context.get(sesionContext);
   if (session) {
     const destino = rolesDe(session.user.role).includes("admin")
       ? "/admin"
@@ -22,10 +22,6 @@ export async function clientLoader() {
     throw redirect(destino);
   }
   return null;
-}
-
-export function HydrateFallback() {
-  return <p className={css({ px: "6", py: "16" })}>Cargando…</p>;
 }
 
 export default function Login() {
