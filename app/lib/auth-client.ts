@@ -5,7 +5,7 @@ import {
 import { createAuthClient } from "better-auth/react";
 
 import type { Auth } from "../../workers/auth"; // import type, nunca valores
-import { ac, roles } from "./permisos";
+import { ac, roles } from "~/shared/permisos";
 
 // Mismo origen: sin `baseURL`, usa el de la página y la cookie viaja sola.
 // `adminClient` suma los campos del plugin (`role`, `banned`) a la sesión, e

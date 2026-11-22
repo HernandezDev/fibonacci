@@ -3,7 +3,7 @@ import { redirect, useNavigate } from "react-router";
 import { css } from "styled-system/css";
 
 import { Button, ButtonLink } from "~/components/Button";
-import { rolesDe } from "~/lib/permisos";
+import { rolesDe } from "~/shared/permisos";
 import { cerrarSesion, sesionContext } from "~/lib/sesion";
 
 import type { Route } from "./+types/home";

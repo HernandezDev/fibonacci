@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { esPais, FORMATOS_HORA } from "../../app/lib/regional";
+import { esPais, FORMATOS_HORA } from "../../app/shared/regional";
 // La tabla solo se usa como tipo (`satisfies CamposDe<typeof user>`).
 import type { user } from "../db";
 import type { CamposDe } from "./campos";

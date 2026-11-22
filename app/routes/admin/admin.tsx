@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, redirect } from "react-router";
 import { css } from "styled-system/css";
 
-import { rolesDe } from "~/lib/permisos";
+import { rolesDe } from "~/shared/permisos";
 import { sesionContext } from "~/lib/sesion";
 
 import type { Route } from "./+types/admin";
