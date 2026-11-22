@@ -205,6 +205,11 @@ export default function Perfil({
               </option>
             ))}
           </select>
+          <span
+            className={css({ display: "block", mt: "1", textStyle: "detalle" })}
+          >
+            Todas las horas de la app se muestran en esta zona.
+          </span>
         </label>
 
         <fieldset>

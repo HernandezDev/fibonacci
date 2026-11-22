@@ -29,8 +29,9 @@ const card = cva({
 });
 
 // Fechas y horas con `useLocale()` (`app/lib/locale.tsx`): idioma español,
-// formato de hora según el Perfil, el país o el navegador, y siempre en la zona
-// horaria del navegador. Los turnos llegan como instantes (`timestamptz`).
+// formato de hora según el Perfil, el país o el navegador, y en la zona horaria
+// del Perfil (la del navegador si no tiene). Los turnos llegan como instantes
+// (`timestamptz`).
 
 type CardProps = Omit<ComponentProps<"article">, "className" | "title"> &
   RecipeVariantProps<typeof card> & {
