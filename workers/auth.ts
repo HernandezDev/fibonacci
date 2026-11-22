@@ -3,10 +3,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin } from "better-auth/plugins/admin";
 import { oAuthProxy } from "better-auth/plugins/oauth-proxy";
+import { and, eq, isNull } from "drizzle-orm";
+import { createMiddleware } from "hono/factory";
 
 import { ac, roles } from "../app/lib/permisos";
+import { esPais, FORMATOS_HORA } from "../app/lib/regional";
 import type { Db } from "./pg-client";
 import * as schema from "./db";
+import { editarPerfil } from "./validaciones/perfil";
 
 // Login en las previews con `oauth-proxy`. Google no acepta comodines en las
 // redirect URIs, así que la preview usa la de producción: producción canjea el
@@ -50,14 +54,27 @@ export function destinoPermitido(destino: URL, origen: URL) {
   );
 }
 
+// País del request según Cloudflare, para `/api/auth/*`: queda en `c.var.pais`
+// solo si es un país válido. "XX" (Cloudflare no sabe), "T1" (Tor), vacío o
+// cualquier otra cosa = `undefined`. En local lo inventa Miniflare.
+export const conPais = createMiddleware<{
+  Bindings: Env;
+  Variables: { pais?: string };
+}>(async (c, next) => {
+  const pais = c.req.raw.cf?.country;
+  c.set("pais", esPais(pais) ? pais : undefined);
+  await next();
+});
+
 // Punto de entrada de `/api/auth/*`: atiende el request y corta cualquier
 // redirección a un sitio que no sea este ni una preview.
 export async function handleAuth(
   env: Env & ProxyEnv,
   db: Db,
   request: Request,
+  pais?: string,
 ) {
-  const response = await createAuth(env, db).handler(request);
+  const response = await createAuth(env, db, pais).handler(request);
   const location = response.headers.get("location");
   if (!location) return response;
 
@@ -70,8 +87,13 @@ export async function handleAuth(
   );
 }
 
+// El cliente lo usa con `import type` para tipar los campos propios del usuario.
+export type Auth = ReturnType<typeof createAuth>;
+
 // Se crea por request, igual que el cliente `pg`: la conexión sale de `withDb`.
-export function createAuth(env: Env & ProxyEnv, db: Db) {
+// `pais` es el de Cloudflare (`conPais`), ya validado; solo lo pasa
+// `/api/auth/*`, que es donde se crean usuarios y sesiones.
+export function createAuth(env: Env & ProxyEnv, db: Db, pais?: string) {
   const proxySecret = env.OAUTH_PROXY_SECRET;
   const productionURL = env.OAUTH_PROXY_PRODUCTION_URL;
 
@@ -89,6 +111,59 @@ export function createAuth(env: Env & ProxyEnv, db: Db) {
     },
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(db, { provider: "pg", schema }),
+    user: {
+      // `input: true`: el usuario los cambia desde el Perfil con
+      // `authClient.updateUser`. Se validan en `databaseHooks.user.update`.
+      additionalFields: {
+        // ISO 3166-1 alfa-2 en mayúsculas ("AR"). `null` = sin dato.
+        pais: { type: "string", required: false, input: true },
+        // `null` = automático (ver `app/lib/formato.tsx`).
+        formatoHora: {
+          type: [...FORMATOS_HORA],
+          required: false,
+          input: true,
+        },
+      },
+    },
+    databaseHooks: {
+      user: {
+        // Cuenta nueva: el país de Cloudflare, solo si es válido. Si no, queda
+        // en `null`: no se guardan datos a medias.
+        create: {
+          before: async (usuario) =>
+            pais ? { data: { ...usuario, pais } } : undefined,
+        },
+        // Cualquier cambio del usuario pasa por acá, venga del Perfil o de otro
+        // endpoint de Better Auth. Se valida solo lo que llega.
+        update: {
+          before: async (cambios) => {
+            const resultado = editarPerfil.safeParse(cambios);
+            if (!resultado.success) {
+              throw new APIError("BAD_REQUEST", {
+                message: resultado.error.issues[0].message,
+              });
+            }
+            return { data: { ...cambios, ...resultado.data } };
+          },
+        },
+      },
+      session: {
+        // En cada inicio de sesión: si el usuario todavía no tiene país y
+        // ahora hay uno válido, se guarda. Si ya tiene, no se toca nunca (el
+        // `isNull` lo asegura en la misma consulta).
+        create: {
+          before: async (sesion) => {
+            if (!pais) return;
+            await db
+              .update(schema.user)
+              .set({ pais })
+              .where(
+                and(eq(schema.user.id, sesion.userId), isNull(schema.user.pais)),
+              );
+          },
+        },
+      },
+    },
     socialProviders: {
       google: {
         clientId: env.GOOGLE_CLIENT_ID,

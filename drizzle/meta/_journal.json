@@ -29,6 +29,13 @@
       "when": 1794286457124,
       "tag": "0003_turno_sin_solapamiento",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795321698251,
+      "tag": "0004_perfil_regional",
+      "breakpoints": true
     }
   ]
 }
