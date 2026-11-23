@@ -33,6 +33,19 @@ const button = cva({
         color: "secondary.text",
         _hover: { bg: "secondary/90" },
       },
+      // Botón de solo ícono (menú, cerrar): sin fondo ni sombra, padding chico
+      // y un fondo suave al pasar el mouse. Usa las MISMAS propiedades que
+      // `base` (px, py, rounded, shadow) para que la variante las reemplace.
+      icon: {
+        px: "2",
+        py: "2",
+        rounded: "md",
+        shadow: "none",
+        bg: "transparent",
+        color: "inherit",
+        cursor: "pointer",
+        _hover: { bg: "bg.muted" },
+      },
     },
   },
   defaultVariants: { variant: "primary" },

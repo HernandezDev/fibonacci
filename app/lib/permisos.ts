@@ -23,6 +23,10 @@ export const roles = {
   alumno: ac.newRole({}),
 };
 
+// Nombre de un rol: "admin" | "profesor" | "alumno". Se deriva de `roles`, así
+// que agregar un rol ahí lo suma acá solo.
+export type Rol = keyof typeof roles;
+
 // Lo que pide una ruta, por ejemplo `{ materia: ["crear"] }`. Una acción que no
 // está en el catálogo es error de tipos.
 export type Permisos = {
