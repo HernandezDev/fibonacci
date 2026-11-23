@@ -1,4 +1,4 @@
-import { Form, Link, redirect, useNavigation } from "react-router";
+import { Form, redirect, useNavigation } from "react-router";
 import { css } from "styled-system/css";
 
 import { Button } from "~/components/Button";
@@ -123,12 +123,8 @@ export default function Perfil({
 
   return (
     <main className={css({ maxW: "640px", mx: "auto", px: "6", py: "16" })}>
-      <Link to="/home" className={css({ textDecoration: "underline" })}>
-        ← Inicio
-      </Link>
       <h1
         className={css({
-          mt: "4",
           fontSize: "3xl",
           fontWeight: "bold",
           color: "heading",

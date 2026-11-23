@@ -6,42 +6,48 @@ import { css } from "styled-system/css";
 import { Button } from "~/components/Button";
 import { Drawer } from "~/components/Drawer";
 import { cerrarSesion, sesionContext } from "~/lib/sesion";
-import { obtenerRolActivo, rutaPrincipal } from "~/lib/rolActivo";
-import { rolesDe, type Rol } from "~/shared/permisos";
+import { esRol, rolesDe, type Rol } from "~/shared/permisos";
 
-import type { Route } from "./+types/panel";
+import type { Route } from "./+types/rol";
 import { SelectorDeRol } from "./components/SelectorDeRol";
 import { seccionesPara } from "./secciones";
 
-// Este layout va DENTRO de `spa.tsx`: la sesión ya la cargó su middleware y
-// está en el contexto, así que acá no se vuelve a pedir. Solo decide qué
+// Layout de los paneles `/alumno`, `/profesor` y `/admin` (el mismo módulo en
+// las tres rutas). El rol activo es el primer tramo de la URL, así que no se
+// guarda en ningún lado: cambiar de rol es navegar a otro panel.
+// La sesión ya la cargó el middleware de `spa.tsx`. Esto solo decide qué
 // mostrar: la API igual verifica la sesión y el rol en cada llamada.
-export function clientLoader({ context }: Route.ClientLoaderArgs) {
-  // 1. Sin sesión, al login.
+export function clientLoader({ context, request }: Route.ClientLoaderArgs) {
   const sesion = context.get(sesionContext);
   if (!sesion) throw redirect("/login");
 
-  // 2. Roles validados contra los roles reales (shared/permisos.ts). Sin
-  //    ninguno conocido no hay panel que mostrar: a `/home`, que vuelve a decidir
-  //    el destino según la sesión y evita que el panel quede vacío.
+  // Un panel de un rol que el usuario no tiene: `/home` elige uno que sí.
   const roles = rolesDe(sesion.user.role);
-  if (roles.length === 0) throw redirect("/home");
+  const { pathname } = new URL(request.url);
+  const rol = pathname.split("/")[1] ?? "";
+  if (!esRol(rol) || !roles.includes(rol)) throw redirect("/home");
 
-  // 3. El rol activo puede cambiar desde el Drawer, pero siempre debe pertenecer
-  //    a la lista real obtenida de la sesión. Se devuelve al componente como
-  //    `loaderData` y sirve solo para mostrar navegación.
-  const rolActivo = obtenerRolActivo(roles);
-  return { roles, rolActivo };
+  // `/<rol>` a secas no tiene contenido: a la primera sección del panel.
+  if (pathname.replace(/\/$/, "") === `/${rol}`) {
+    throw redirect(seccionesPara(rol)[0].to);
+  }
+  return { roles, rol };
 }
 
-export default function Panel({ loaderData }: Route.ComponentProps) {
+// Por defecto, el loader de un layout no se vuelve a correr al navegar entre
+// sus hijas. Acá sí, para que `/<rol>` a secas redirija también desde dentro
+// del mismo panel. No hace pedidos: la sesión viene del contexto.
+export function shouldRevalidate() {
+  return true;
+}
+
+export default function PanelDeRol({ loaderData }: Route.ComponentProps) {
   const [abierto, setAbierto] = useState(false);
   const navigate = useNavigate();
-  const secciones = seccionesPara(loaderData.rolActivo);
 
   function cambiarRol(rol: Rol) {
     setAbierto(false);
-    navigate(rutaPrincipal(rol));
+    navigate(`/${rol}`);
   }
 
   async function salir() {
@@ -72,10 +78,14 @@ export default function Panel({ loaderData }: Route.ComponentProps) {
         </Button>
       </header>
 
-      <Drawer open={abierto} onClose={() => setAbierto(false)} sections={secciones}>
+      <Drawer
+        open={abierto}
+        onClose={() => setAbierto(false)}
+        sections={seccionesPara(loaderData.rol)}
+      >
         <SelectorDeRol
           roles={loaderData.roles}
-          activo={loaderData.rolActivo}
+          activo={loaderData.rol}
           alCambiar={cambiarRol}
         />
         <div className={css({ px: "1", mt: "4" })}>

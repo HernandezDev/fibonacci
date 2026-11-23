@@ -2,8 +2,6 @@ import { css } from "styled-system/css";
 
 import type { Rol } from "~/shared/permisos";
 
-import { guardarRolActivo } from "~/lib/rolActivo";
-
 const ETIQUETAS: Record<Rol, string> = {
   alumno: "Alumno",
   profesor: "Profesor",
@@ -12,28 +10,22 @@ const ETIQUETAS: Record<Rol, string> = {
 
 type SelectorDeRolProps = {
   roles: Rol[];
-  activo: Rol | null;
+  activo: Rol;
   alCambiar: (rol: Rol) => void;
 };
 
+// Con un solo rol no hay nada que elegir. El rol activo es el de la URL: el
+// selector solo avisa al padre, que navega al otro panel.
 export function SelectorDeRol({ roles, activo, alCambiar }: SelectorDeRolProps) {
   if (roles.length < 2) return null;
-
-  function cambiar(rol: Rol) {
-    guardarRolActivo(rol);
-    alCambiar(rol);
-  }
 
   return (
     <div className={css({ mt: "4", px: "1" })}>
       <label>
         Rol activo
         <select
-          value={activo ?? ""}
-          onChange={(event) => {
-            const rol = event.target.value as Rol;
-            cambiar(rol);
-          }}
+          value={activo}
+          onChange={(event) => alCambiar(event.target.value as Rol)}
           className={css({
             display: "block",
             w: "full",
