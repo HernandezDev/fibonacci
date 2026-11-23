@@ -1,14 +1,16 @@
-import { ListIcon } from "@phosphor-icons/react/ssr";
+import { ListIcon, SignOutIcon } from "@phosphor-icons/react/ssr";
 import { useState } from "react";
-import { Outlet, redirect } from "react-router";
+import { Outlet, redirect, useNavigate } from "react-router";
 import { css } from "styled-system/css";
 
 import { Button } from "~/components/Button";
 import { Drawer } from "~/components/Drawer";
-import { sesionContext } from "~/lib/sesion";
-import { rolesDe } from "~/shared/permisos";
+import { cerrarSesion, sesionContext } from "~/lib/sesion";
+import { obtenerRolActivo, rutaPrincipal } from "~/lib/rolActivo";
+import { rolesDe, type Rol } from "~/shared/permisos";
 
 import type { Route } from "./+types/panel";
+import { SelectorDeRol } from "./components/SelectorDeRol";
 import { seccionesPara } from "./secciones";
 
 // Este layout va DENTRO de `spa.tsx`: la sesión ya la cargó su middleware y
@@ -20,18 +22,33 @@ export function clientLoader({ context }: Route.ClientLoaderArgs) {
   if (!sesion) throw redirect("/login");
 
   // 2. Roles validados contra los roles reales (shared/permisos.ts). Sin
-  //    ninguno conocido no hay panel que mostrar: a `/home`, que está fuera de
-  //    este layout, así que no hay bucle.
+  //    ninguno conocido no hay panel que mostrar: a `/home`, que vuelve a decidir
+  //    el destino según la sesión y evita que el panel quede vacío.
   const roles = rolesDe(sesion.user.role);
   if (roles.length === 0) throw redirect("/home");
 
-  // 3. Lo que se devuelve llega al componente como `loaderData`.
-  return { roles };
+  // 3. El rol activo puede cambiar desde el Drawer, pero siempre debe pertenecer
+  //    a la lista real obtenida de la sesión. Se devuelve al componente como
+  //    `loaderData` y sirve solo para mostrar navegación.
+  const rolActivo = obtenerRolActivo(roles);
+  return { roles, rolActivo };
 }
 
 export default function Panel({ loaderData }: Route.ComponentProps) {
   const [abierto, setAbierto] = useState(false);
-  const secciones = seccionesPara(loaderData.roles);
+  const navigate = useNavigate();
+  const secciones = seccionesPara(loaderData.rolActivo);
+
+  function cambiarRol(rol: Rol) {
+    setAbierto(false);
+    navigate(rutaPrincipal(rol));
+  }
+
+  async function salir() {
+    await cerrarSesion();
+    setAbierto(false);
+    navigate("/login");
+  }
 
   return (
     <>
@@ -55,7 +72,23 @@ export default function Panel({ loaderData }: Route.ComponentProps) {
         </Button>
       </header>
 
-      <Drawer open={abierto} onClose={() => setAbierto(false)} sections={secciones} />
+      <Drawer open={abierto} onClose={() => setAbierto(false)} sections={secciones}>
+        <SelectorDeRol
+          roles={loaderData.roles}
+          activo={loaderData.rolActivo}
+          alCambiar={cambiarRol}
+        />
+        <div className={css({ px: "1", mt: "4" })}>
+          <Button
+            variant="secondary"
+            onClick={salir}
+            className={css({ display: "inline-flex", w: "full", gap: "2", justifyContent: "center" })}
+          >
+            <SignOutIcon size={20} weight="bold" />
+            Cerrar sesión
+          </Button>
+        </div>
+      </Drawer>
 
       {/* Acá React Router pinta la ruta hija que corresponda a la URL. */}
       <Outlet />
