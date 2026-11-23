@@ -1,18 +1,21 @@
 import type { DrawerSection } from "~/components/Drawer";
-import type { Rol } from "~/lib/permisos";
+import type { Rol } from "~/shared/permisos";
 
 // Secciones que ve cualquier usuario con sesión, sin importar el rol.
-const SECCIONES_COMUNES: DrawerSection[] = [{ label: "Inicio", to: "/home" }];
+const SECCIONES_COMUNES: DrawerSection[] = [
+  { label: "Inicio", to: "/home" },
+  { label: "Perfil", to: "/perfil" },
+];
 
 // Qué secciones del drawer ve cada rol. Es solo configuración (datos): agregar
 // una sección es agregar una línea acá y su ruta en `app/routes.ts`.
 // Record<Rol, ...> obliga a definir secciones para TODOS los roles.
 // Esto solo muestra u oculta el menú: quien decide el acceso real es la API.
 //
-// Solo van secciones cuya ruta ya existe. Las de alumno y profesor se agregan
+// Solo van secciones cuya ruta ya existe. Agenda y disponibilidad se suman
 // junto con sus rutas.
 const SECCIONES_POR_ROL: Record<Rol, DrawerSection[]> = {
-  alumno: [],
+  alumno: [{ label: "Reservar clase", to: "/reservar" }],
   profesor: [],
   admin: [{ label: "Materias", to: "/admin/materias" }],
 };

@@ -1,15 +1,25 @@
-import { type RouteConfig, index, layout, route } from "@react-router/dev/routes";
+import {
+  type RouteConfig,
+  index,
+  layout,
+  route,
+} from "@react-router/dev/routes";
 
 export default [
   index("routes/landing/landing.tsx"),
-  route("home", "routes/home/home.tsx"),
-  route("login", "routes/login/login.tsx"),
-  // Layout del panel (Drawer + <Outlet />): comparte la sesión, los roles y el
-  // menú con todas las rutas que van adentro.
-  layout("routes/layout/panel/panel.tsx", [
-route("admin", "routes/layout/admin/admin.tsx", [
-  route("materias", "routes/layout/admin/materias/materias.tsx"),
-]),
-    // Las rutas de alumno y profesor se suman acá cuando existan.
+  // Todo lo demás es SPA y va dentro de este layout (ver `spa.tsx`).
+  layout("routes/layoutSpa/spa.tsx", [
+    route("home", "routes/layoutSpa/home/home.tsx"),
+    route("login", "routes/layoutSpa/login/login.tsx"),
+    // Rutas con menú lateral (Drawer): el layout del panel exige sesión y un
+    // rol conocido, y arma las secciones según los roles del usuario.
+    layout("routes/layoutSpa/layoutPanel/panel.tsx", [
+      route("perfil", "routes/layoutSpa/layoutPanel/perfil/perfil.tsx"),
+      route("reservar", "routes/layoutSpa/layoutPanel/reservar/reservar.tsx"),
+      route("admin", "routes/layoutSpa/layoutPanel/admin/admin.tsx", [
+        route("materias", "routes/layoutSpa/layoutPanel/admin/materias/materias.tsx"),
+      ]),
+      // Las rutas propias de alumno y profesor se suman acá cuando existan.
+    ]),
   ]),
 ] satisfies RouteConfig;

@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
 
-import { type Permisos, puede } from "../app/lib/permisos";
+import { type Permisos, puede } from "../app/shared/permisos";
 import { createAuth } from "./auth";
 import { type Db, withDb } from "./pg-client";
 

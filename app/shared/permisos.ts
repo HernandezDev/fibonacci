@@ -3,7 +3,8 @@ import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 
 // Roles del plugin `admin` de Better Auth. Los usan el servidor
 // (`workers/auth.ts`) y el cliente (`app/lib/auth-client.ts`), por eso viven en
-// `app/`: el frontend no puede importar valores de `workers/`.
+// `app/shared/`: el frontend no puede importar valores de `workers/`, y
+// `workers/` solo importa de acá.
 // Un usuario puede tener varios roles: se guardan separados por comas en
 // `user.role` (por ejemplo "admin,profesor").
 
@@ -12,15 +13,21 @@ import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 const catalogo = {
   ...defaultStatements,
   materia: ["listar", "crear"],
+  // Turnos libres de los profesores, para reservar.
+  disponibilidad: ["listar"],
 } as const;
 
 export const ac = createAccessControl(catalogo);
 
 // Qué parte del catálogo tiene cada rol.
 export const roles = {
-  admin: ac.newRole({ ...adminAc.statements, materia: ["listar", "crear"] }),
+  admin: ac.newRole({
+    ...adminAc.statements,
+    materia: ["listar", "crear"],
+    disponibilidad: ["listar"],
+  }),
   profesor: ac.newRole({}),
-  alumno: ac.newRole({}),
+  alumno: ac.newRole({ disponibilidad: ["listar"] }),
 };
 
 // Nombre de un rol: "admin" | "profesor" | "alumno". Se deriva de `roles`, así

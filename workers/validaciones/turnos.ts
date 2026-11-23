@@ -58,5 +58,8 @@ export const activarMateria = z.object({
   activo: z.boolean(),
 } satisfies CamposDe<typeof profesorMateria>);
 
+// Turnos libres: opcionalmente, solo los de una materia.
+export const filtroDisponibles = z.object({ materiaId: z.uuid().optional() });
+
 // Parámetro `:id` de las rutas.
 export const idParam = z.object({ id: z.uuid() });
