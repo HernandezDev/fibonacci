@@ -1,6 +1,7 @@
 import { redirect } from "react-router";
 import { css } from "styled-system/css";
 
+import { obtenerRolActivo, rutaPrincipal } from "~/lib/rolActivo";
 import { rolesDe } from "~/shared/permisos";
 import { sesionContext } from "~/lib/sesion";
 
@@ -11,15 +12,15 @@ export function meta() {
   return [{ title: "Iniciar sesión — Instituto Fibonacci" }];
 }
 
-// Con sesión iniciada no hay nada que hacer acá: si es admin va a /admin; si
-// no, a /home. La sesión la cargó el layout `spa.tsx`.
+// Con sesión iniciada entra al panel principal del rol activo. El primero usa
+// la prioridad alumno → profesor → admin; el cambio se conserva en el navegador.
+// La sesión la cargó el layout `spa.tsx`.
 export async function clientLoader({ context }: Route.ClientLoaderArgs) {
   const session = context.get(sesionContext);
   if (session) {
-    const destino = rolesDe(session.user.role).includes("admin")
-      ? "/admin"
-      : "/home";
-    throw redirect(destino);
+    const rolActivo = obtenerRolActivo(rolesDe(session.user.role));
+    if (rolActivo) throw redirect(rutaPrincipal(rolActivo));
+    throw redirect("/home");
   }
   return null;
 }
