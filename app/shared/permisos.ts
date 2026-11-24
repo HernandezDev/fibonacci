@@ -40,7 +40,7 @@ export type Permisos = {
   [R in keyof typeof catalogo]?: (typeof catalogo)[R][number][];
 };
 
-function esRol(rol: string): rol is keyof typeof roles {
+export function esRol(rol: string): rol is Rol {
   return Object.hasOwn(roles, rol);
 }
 

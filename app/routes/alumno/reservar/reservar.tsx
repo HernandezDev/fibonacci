@@ -89,12 +89,8 @@ export default function Reservar({ loaderData }: Route.ComponentProps) {
 
   return (
     <main className={css({ maxW: "960px", mx: "auto", px: "6", py: "16" })}>
-      <Link to="/home" className={css({ textDecoration: "underline" })}>
-        ← Inicio
-      </Link>
       <h1
         className={css({
-          mt: "4",
           fontSize: "3xl",
           fontWeight: "bold",
           color: "heading",
@@ -145,7 +141,7 @@ export default function Reservar({ loaderData }: Route.ComponentProps) {
             <p className={css({ mt: "8" })}>
               No hay turnos libres de esa materia en los próximos 7 días.{" "}
               <Link
-                to="/reservar"
+                to="/alumno/reservar"
                 replace
                 className={css({ textDecoration: "underline" })}
               >

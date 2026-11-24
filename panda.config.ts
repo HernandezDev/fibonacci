@@ -2,9 +2,16 @@ import { defineConfig } from '@pandacss/dev'
 
 /*
 Reglas que conviene que sepan todos:
-El punto navega la jerarquía. primary.text.muted es semanticTokens.colors.primary.text.muted. Los que tienen DEFAULT se usan sin sufijo (primary, bg, text).
-Después de cambiar panda.config, hay que regenerar con npx panda codegen. Eso actualiza styled-system/ y el autocompletado de TypeScript, que además te marca los tokens inexistentes.
-Panda analiza el código de forma estática: los valores deben ser literales. color: \${algo}`no funciona. Para variar estilos según una condición, se usan variantes delsva`. 
+- El punto navega la jerarquía: `primary.text.muted` es
+  `semanticTokens.colors.primary.text.muted`. Los que tienen `DEFAULT` se usan
+  sin sufijo (`primary`, `bg`, `text`).
+- Después de cambiar `panda.config.ts`, hay que regenerar con
+  `npx panda codegen`. Eso actualiza `styled-system/` y el autocompletado de
+  TypeScript, que además marca los tokens inexistentes.
+- Panda analiza el código de forma estática: los valores tienen que ser
+  literales, así que un valor armado en runtime, como color: `${algo}`, no
+  funciona. Para variar estilos según una condición se usan variantes (`cva`
+  o `sva`).
 */
 
 export default defineConfig({

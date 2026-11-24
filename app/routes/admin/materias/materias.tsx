@@ -47,12 +47,12 @@ export default function Materias({
   }, [actionData]);
 
   return (
-    <section>
-      <h2
-        className={css({ fontSize: "2xl", fontWeight: "bold", color: "heading" })}
+    <main className={css({ maxW: "960px", mx: "auto", px: "6", py: "16" })}>
+      <h1
+        className={css({ fontSize: "3xl", fontWeight: "bold", color: "heading" })}
       >
         Materias
-      </h2>
+      </h1>
 
       <Form
         method="post"
@@ -126,6 +126,6 @@ export default function Materias({
           ))}
         </ul>
       )}
-    </section>
+    </main>
   );
 }

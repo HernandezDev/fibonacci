@@ -1,6 +1,6 @@
 import { createContext, data, useRouteLoaderData } from "react-router";
 
-import type { clientLoader } from "~/routes/layoutSpa/spa";
+import type { clientLoader } from "~/routes/spa/spa";
 
 import { authClient } from "./auth-client";
 
