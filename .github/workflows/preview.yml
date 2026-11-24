@@ -1,0 +1,71 @@
+name: Preview online
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  pull-requests: write
+
+# Un push nuevo cancela la comprobación anterior del mismo PR
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  WORKER_NAME: fibonacci
+  SUBDOMAIN: josuehernandezrivas
+
+jobs:
+  check-and-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calcular URL y verificar
+        id: check
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          alias=$(printf '%s' "$BRANCH" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+          url="https://${alias}-${WORKER_NAME}.${SUBDOMAIN}.workers.dev"
+
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$url" || true)
+          echo "HTTP $code → $url"
+
+          if [ "$code" -ge 200 ] && [ "$code" -lt 400 ]; then
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::El worker no respondió ($code): $url"
+          fi
+
+      - name: Comentar en el PR
+        if: steps.check.outputs.url != ''
+        uses: actions/github-script@v7
+        env:
+          URL: ${{ steps.check.outputs.url }}
+        with:
+          script: |
+            // Un solo comentario por PR: se reconoce por la marca y se actualiza
+            const marca = "<!-- preview-online -->";
+            const body = `${marca}\n🔗 **Preview de la rama:** ${process.env.URL}`;
+
+            const comentarios = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const previo = comentarios.find((c) => c.body?.includes(marca));
+
+            if (!previo) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            } else if (previo.body !== body) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: previo.id,
+                body,
+              });
+            }
