@@ -3,6 +3,7 @@ import { data, Form, useNavigation } from "react-router";
 import { css } from "styled-system/css";
 
 import { Button } from "~/components/Button";
+import { CalendarMonthContainer } from "~/components/CalendarMonthContainer";
 import { api, controlarAcceso, mensajeDeError } from "~/lib/api";
 
 import type { Route } from "./+types/materias";
@@ -53,6 +54,12 @@ export default function Materias({
       >
         Materias
       </h1>
+
+      <CalendarMonthContainer
+  renderDia={(dia) => // se ejecuta una vez por cada día de la grilla
+    dia.numero % 5 === 0 ? <p>Clase de prueba</p> : null // contenido de prueba en algunos días
+  }
+/>
 
       <Form
         method="post"
