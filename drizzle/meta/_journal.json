@@ -43,6 +43,13 @@
       "when": 1795367705661,
       "tag": "0005_zona_horaria",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795493850614,
+      "tag": "0006_turno_alumno_sin_solapamiento",
+      "breakpoints": true
     }
   ]
 }
