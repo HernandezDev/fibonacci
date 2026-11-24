@@ -1,4 +1,13 @@
-import { and, DrizzleQueryError, eq, isNotNull, ne, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  DrizzleQueryError,
+  eq,
+  gt,
+  isNotNull,
+  ne,
+  sql,
+} from "drizzle-orm";
 import { Hono } from "hono";
 
 import {
@@ -126,6 +135,32 @@ export const turnos = new Hono<{ Bindings: Env }>()
       );
     },
   )
+  // Agenda del usuario de la sesión como alumno: sus turnos que todavía no
+  // terminaron (uno en curso sigue apareciendo), sin los cancelados, ordenados
+  // por hora. Misma forma que la respuesta de reservar. La del profesor va a
+  // ser `/agenda/profesor`, con su propio permiso.
+  .get("/agenda/alumno", conSesion({ agenda: ["alumno"] }), async (c) => {
+    const filas = await c.var.db
+      .select({
+        id: turno.id,
+        inicio: turno.iniciaEn,
+        fin: turno.terminaEn,
+        profesor: { id: user.id, nombre: user.name },
+        materia: { id: materia.id, nombre: materia.nombre },
+      })
+      .from(turno)
+      .innerJoin(user, eq(user.id, turno.profesorId))
+      .innerJoin(materia, eq(materia.id, turno.materiaId))
+      .where(
+        and(
+          eq(turno.alumnoId, c.var.usuario.id),
+          ne(turno.estado, "cancelado"),
+          gt(turno.terminaEn, sql`now()`),
+        ),
+      )
+      .orderBy(asc(turno.iniciaEn));
+    return c.json(filas);
+  })
   // Reservar un turno libre para el usuario de la sesión. `terminaEn` sale de
   // la regla, no del cliente. Los solapamientos los deciden dos exclusion
   // constraints, también si se reserva a la vez: que nadie haya tomado ese
