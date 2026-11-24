@@ -97,10 +97,11 @@ export const reglaDisponibilidad = pgTable(
 );
 
 // Turnos reservados. Que coincidan con una regla del profesor lo verifica el
-// servidor al reservar. La doble reserva la frena la base: la exclusion
-// constraint `turno_profesor_sin_solapamiento` (migración propia, Drizzle no
-// tiene `exclude()`) impide dos turnos no cancelados del mismo profesor que se
-// pisen.
+// servidor al reservar. La doble reserva la frena la base, con dos exclusion
+// constraints (migraciones propias, Drizzle no tiene `exclude()`): dos turnos
+// no cancelados que se pisen no pueden ser del mismo profesor
+// (`turno_profesor_sin_solapamiento`, 0003) ni del mismo alumno
+// (`turno_alumno_sin_solapamiento`, 0006).
 export const turno = pgTable(
   "turno",
   {

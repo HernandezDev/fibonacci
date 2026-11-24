@@ -15,6 +15,8 @@ const catalogo = {
   materia: ["listar", "crear"],
   // Turnos libres de los profesores, para reservar.
   disponibilidad: ["listar"],
+  // Reservar un turno libre para uno mismo.
+  turno: ["reservar"],
 } as const;
 
 export const ac = createAccessControl(catalogo);
@@ -27,7 +29,7 @@ export const roles = {
     disponibilidad: ["listar"],
   }),
   profesor: ac.newRole({}),
-  alumno: ac.newRole({ disponibilidad: ["listar"] }),
+  alumno: ac.newRole({ disponibilidad: ["listar"], turno: ["reservar"] }),
 };
 
 // Nombre de un rol: "admin" | "profesor" | "alumno". Se deriva de `roles`, así
