@@ -48,7 +48,7 @@ export function CalendarMonthContainer({
   etiqueta = "Calendario de los próximos 30 días",
   className,
 }: CalendarMonthContainerProps) {
-  // El idioma (por ejemplo "es-AR") y la zona horaria del Perfil, que da el LocaleProvider del layout spa.
+  // El idioma (un Intl.Locale, por ejemplo es-AR) y la zona horaria del Perfil, que da el LocaleProvider del layout spa.
   const { locale, zona } = useLocale();
 
   // Las casillas se calculan una vez por zona, no en cada render. Se recalcula si el usuario cambia la zona en el Perfil.

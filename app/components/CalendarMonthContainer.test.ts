@@ -18,7 +18,22 @@ const TOKIO = "Asia/Tokyo"; // un día adelantada respecto de Buenos Aires a est
 
 // Decide qué devuelve useLocale() en la prueba.
 function fijarLocale(zona: string, locale = "es-AR") {
-  vi.mocked(useLocale).mockReturnValue({ locale, zona } as ReturnType<typeof useLocale>); // solo las dos propiedades que usa el contenedor
+  const valor = {
+    locale: new Intl.Locale(locale),
+    zona,
+    hora: new Intl.DateTimeFormat(locale, {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: zona,
+    }),
+    fecha: new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      timeZone: zona,
+    }),
+  } satisfies ReturnType<typeof useLocale>;
+  vi.mocked(useLocale).mockReturnValue(valor);
 }
 
 // Renderiza el contenedor a texto HTML.

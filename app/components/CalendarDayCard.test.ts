@@ -46,8 +46,9 @@ function claseDeLaCelda(html: string): string {
 
 describe("CalendarDayCard", () => {
   it("muestra el número y la fecha exacta en <time>", () => {
-    const html = dibujar(unDia()); // casilla común
-    expect(html).toContain('datetime="2026-11-24"'); // la fecha de máquina
+    const dia = unDia();
+    const html = dibujar(dia);
+    expect(html).toContain(`<time dateTime="${dia.fecha}"`); // la fecha de máquina
     expect(html).toContain('<span aria-hidden="true">24</span>'); // el número visible, oculto a los lectores
   });
 
