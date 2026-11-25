@@ -55,12 +55,6 @@ export default function Materias({
         Materias
       </h1>
 
-      <CalendarMonthContainer
-  renderDia={(dia) => // se ejecuta una vez por cada día de la grilla
-    dia.numero % 5 === 0 ? <p>Clase de prueba</p> : null // contenido de prueba en algunos días
-  }
-/>
-
       <Form
         method="post"
         ref={formRef}
