@@ -106,15 +106,15 @@ export const turno = pgTable(
   "turno",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    profesorId: uuid("profesor_id")
-      .notNull()
-      .references(() => user.id),
+    // `profesor_id` y `materia_id` no llevan FK propia: la compuesta de abajo
+    // ya garantiza que existen y frena borrar un profesor o una materia con
+    // turnos. Las columnas sí hacen falta (las usan la compuesta y la
+    // exclusion constraint).
+    profesorId: uuid("profesor_id").notNull(),
     alumnoId: uuid("alumno_id")
       .notNull()
       .references(() => user.id),
-    materiaId: uuid("materia_id")
-      .notNull()
-      .references(() => materia.id),
+    materiaId: uuid("materia_id").notNull(),
     iniciaEn: timestamp("inicia_en", { withTimezone: true }).notNull(),
     terminaEn: timestamp("termina_en", { withTimezone: true }).notNull(),
     estado: estadoTurno("estado").notNull().default("confirmado"),

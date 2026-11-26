@@ -50,6 +50,13 @@
       "when": 1795493850614,
       "tag": "0006_turno_alumno_sin_solapamiento",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795665326021,
+      "tag": "0007_turno_sin_fk_redundantes",
+      "breakpoints": true
     }
   ]
 }
